@@ -6,6 +6,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
+using System.Runtime.InteropServices;
 
 class Installer
 {
@@ -292,31 +293,49 @@ class Installer
         string targetPath = Path.Combine(TargetDir, "Abrir-MestreDoPC.exe");
         string iconPath = Path.Combine(TargetDir, "icon.ico");
 
-        string psCommand = string.Format(
-            "$ws = New-Object -ComObject WScript.Shell; " +
-            "$sc = $ws.CreateShortcut('{0}'); " +
-            "$sc.TargetPath = '{1}'; " +
-            "$sc.WorkingDirectory = '{2}'; " +
-            "$sc.IconLocation = '{3},0'; " +
-            "$sc.Save()",
-            EscapePowerShellLiteral(shortcutPath),
-            EscapePowerShellLiteral(targetPath),
-            EscapePowerShellLiteral(TargetDir),
-            EscapePowerShellLiteral(iconPath)
-        );
+        Type shellType = Type.GetTypeFromProgID("WScript.Shell");
+        if (shellType == null)
+        {
+            throw new InvalidOperationException("Nao foi possivel inicializar WScript.Shell para criar o atalho.");
+        }
 
-        RunHiddenProcess(
-            Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.Windows),
-                @"System32\WindowsPowerShell\v1.0\powershell.exe"
-            ),
-            "-NoProfile -ExecutionPolicy Bypass -Command \"" + psCommand + "\""
-        );
-    }
+        object shell = null;
+        object shortcut = null;
 
-    private static string EscapePowerShellLiteral(string value)
-    {
-        return value.Replace("'", "''");
+        try
+        {
+            shell = Activator.CreateInstance(shellType);
+            shortcut = shellType.InvokeMember(
+                "CreateShortcut",
+                System.Reflection.BindingFlags.InvokeMethod,
+                null,
+                shell,
+                new object[] { shortcutPath }
+            );
+
+            Type shortcutType = shortcut.GetType();
+            shortcutType.InvokeMember("TargetPath", System.Reflection.BindingFlags.SetProperty, null, shortcut, new object[] { targetPath });
+            shortcutType.InvokeMember("WorkingDirectory", System.Reflection.BindingFlags.SetProperty, null, shortcut, new object[] { TargetDir });
+            shortcutType.InvokeMember("IconLocation", System.Reflection.BindingFlags.SetProperty, null, shortcut, new object[] { iconPath + ",0" });
+            shortcutType.InvokeMember("Save", System.Reflection.BindingFlags.InvokeMethod, null, shortcut, null);
+        }
+        finally
+        {
+            if (shortcut != null && Marshal.IsComObject(shortcut))
+            {
+                Marshal.FinalReleaseComObject(shortcut);
+            }
+
+            if (shell != null && Marshal.IsComObject(shell))
+            {
+                Marshal.FinalReleaseComObject(shell);
+            }
+        }
+
+        if (File.Exists(shortcutPath) == false)
+        {
+            throw new InvalidOperationException("Falha ao criar o atalho na Area de Trabalho: " + shortcutPath);
+        }
     }
 
     private static void RunHiddenProcess(string fileName, string arguments)
