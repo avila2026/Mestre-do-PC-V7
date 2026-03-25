@@ -6662,7 +6662,7 @@
 
 
 
-              'powercfg /batteryreport /output "$env:USERPROFILE\\Desktop\\battery-report.html"; Write-Host "✅ Relatório da bateria salvo no Desktop!" -ForegroundColor Green',
+              '$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'battery-report.html\'; powercfg /batteryreport /output "$report"; Write-Host "✅ Relatório da bateria salvo em: $report" -ForegroundColor Green',
 
 
 
@@ -6694,7 +6694,7 @@
 
 
 
-              'powercfg /energy /output "$env:USERPROFILE\\Desktop\\energy-report.html"; Write-Host "✅ Relatório de energia salvo no Desktop (aguarde 60s para completar)!" -ForegroundColor Green',
+              '$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'energy-report.html\'; powercfg /energy /output "$report"; Write-Host "✅ Relatório de energia salvo em: $report (aguarde 60s para completar)!" -ForegroundColor Green',
 
 
 
@@ -7230,7 +7230,7 @@
 
 
 
-              'powercfg /energy /output "$env:USERPROFILE\\Desktop\\energy-report.html"; Write-Host "✅ Relatório salvo no Desktop!" -ForegroundColor Green',
+              '$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'energy-report.html\'; powercfg /energy /output "$report"; Write-Host "✅ Relatório salvo em: $report" -ForegroundColor Green',
 
 
 
