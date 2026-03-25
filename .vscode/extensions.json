@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "google.geminicodeassist",
+    "ms-vscode.powershell",
+    "ritwickdey.liveserver",
+    "ecmel.vscode-html-css",
+    "maheshkok.claude-code-gui"
+  ]
+}
