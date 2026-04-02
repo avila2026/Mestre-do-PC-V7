@@ -1,3 +1,5 @@
 {
-    "envWatcher.enabled": false
+    "envWatcher.enabled": false,
+    "github.copilot.chat.agentDebugLog.enabled": true,
+    "github.copilot.chat.agentDebugLog.fileLogging.enabled": true
 }
