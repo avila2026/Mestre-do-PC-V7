@@ -8,10 +8,14 @@
         "start": "node index.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
-    "keywords": ["mcp", "mestre-do-pc", "system-tools"],
+    "keywords": [
+        "mcp",
+        "mestre-do-pc",
+        "system-tools"
+    ],
     "author": "Jeanc",
     "license": "ISC",
-    "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.0.0"
+    "devDependencies": {
+        "@modelcontextprotocol/sdk": "^1.27.1"
     }
 }

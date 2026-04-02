@@ -3,6 +3,9 @@
     "google.geminicodeassist",
     "ms-vscode.powershell",
     "ritwickdey.liveserver",
-    "ecmel.vscode-html-css"
+    "ecmel.vscode-html-css",
+    "ms-azuretools.vscode-azure-mcp-server",
+    "ms-azuretools.azure-dev",
+    "ms-azuretools.vscode-azure-github-copilot"
   ]
 }
