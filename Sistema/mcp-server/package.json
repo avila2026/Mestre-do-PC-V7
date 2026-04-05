@@ -15,7 +15,7 @@
     ],
     "author": "Jeanc",
     "license": "ISC",
-    "devDependencies": {
+    "dependencies": {
         "@modelcontextprotocol/sdk": "^1.27.1"
     }
 }

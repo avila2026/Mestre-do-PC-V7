@@ -87,5 +87,11 @@
 "C_Cpp_Runner.msvcSecureNoWarnings": false,
 "appmod.experimental.task.typescript.upgrade": true,
 "appmod.experimental.task.rearchitecture": true,
-"appmod.javaUpgrade.enableQuickPick": true
+"appmod.javaUpgrade.enableQuickPick": true,
+"python.analysis.extraPaths": [
+  "c:\\Users\\Jeanc\\.vscode-insiders\\extensions\\continue.continue-0.0.412-win32-x64"
+],
+"python.autoComplete.extraPaths": [
+  "c:\\Users\\Jeanc\\.vscode-insiders\\extensions\\continue.continue-0.0.412-win32-x64"
+]
 }
