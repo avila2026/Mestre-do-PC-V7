@@ -1,5 +1,31 @@
-node_modules/
-*.log
-*.lic
+# Binarios e licencas
 uninstall.exe
 Abrir-MestreDoPC.exe
+*.lic
+
+# Runtime
+MestreDoPC-Launcher.pid
+install.log
+uninstall.log
+logs/
+
+# Node
+node_modules/
+mcp-server/node_modules/
+npm-debug.log*
+
+# Auditoria (gerada, nao versionada)
+audit/
+
+# OS
+Thumbs.db
+desktop.ini
+*.bak
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# Worktrees internos do Claude Code (outros repos)
+.claude/worktrees/

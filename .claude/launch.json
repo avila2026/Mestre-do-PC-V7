@@ -1,0 +1,27 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mestre-launcher",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "MestreDoPC-Launcher.ps1"
+      ],
+      "port": 7777,
+      "note": "Requer Admin (auto-eleva via UAC). Normalmente ja roda via tarefa agendada 'MestreDoPC_Admin_Launcher'. Nao iniciar manualmente sem parar a tarefa primeiro."
+    },
+    {
+      "name": "mestre-mcp",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "mcp-server/index.js"
+      ],
+      "port": 0,
+      "note": "Servidor MCP stdio (sem porta HTTP). Registrado em ~/.claude.json como 'mestre_do_pc'. O Claude Code spawna automaticamente quando necessario."
+    }
+  ]
+}
