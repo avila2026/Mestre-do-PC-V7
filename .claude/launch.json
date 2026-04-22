@@ -12,7 +12,8 @@
         "MestreDoPC-Launcher.ps1"
       ],
       "port": 7777,
-      "note": "Requer Admin (auto-eleva via UAC). Normalmente ja roda via tarefa agendada 'MestreDoPC_Admin_Launcher'. Nao iniciar manualmente sem parar a tarefa primeiro."
+      "autoPort": false,
+      "note": "Porta 7777 obrigatoria — hardcoded no HTML frontend (BASE = http://127.0.0.1:7777), em assets/api.js e no mcp-server/index.js. Mudar a porta quebraria toda a comunicacao. Requer Admin (UAC). Gerenciado via tarefa agendada 'MestreDoPC_Admin_Launcher' — nao usar preview_start."
     },
     {
       "name": "mestre-mcp",
@@ -21,7 +22,8 @@
         "mcp-server/index.js"
       ],
       "port": 0,
-      "note": "Servidor MCP stdio (sem porta HTTP). Registrado em ~/.claude.json como 'mestre_do_pc'. O Claude Code spawna automaticamente quando necessario."
+      "autoPort": false,
+      "note": "Servidor MCP stdio (sem porta HTTP). Gerenciado pelo Claude Code via 'claude mcp add'. Nao iniciar manualmente."
     }
   ]
 }
