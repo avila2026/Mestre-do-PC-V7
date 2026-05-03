@@ -16,8 +16,12 @@ if (Get-Command ollama -ErrorAction SilentlyContinue) {
     Write-Host "Baixando Ollama..." -ForegroundColor Yellow
     Invoke-WebRequest -Uri $OllamaUrl -OutFile $OllamaInstaller -UseBasicParsing
     Write-Host "Instalando..." -ForegroundColor Yellow
-    Start-Process -FilePath $OllamaInstaller -ArgumentList "/SILENT" -Wait
-    Write-Host "Ollama instalado. Reinicie o terminal e rode este script novamente." -ForegroundColor Green
+    $proc = Start-Process -FilePath $OllamaInstaller -ArgumentList "/SILENT" -Wait -PassThru
+    if ($proc.ExitCode -ne 0) {
+        Write-Host "ERRO: A instalacao do Ollama falhou com codigo $($proc.ExitCode)" -ForegroundColor Red
+        return
+    }
+    Write-Host "Ollama instalado com sucesso. Reinicie o terminal e rode este script novamente." -ForegroundColor Green
     return
 }
 
