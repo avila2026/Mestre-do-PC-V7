@@ -1,10 +1,11 @@
 /**
  * Structured Logger for MestreDoPC V7
- * 
+ *
  * Uses Pino for high-performance structured logging with
  * timestamps, levels, and request tracking.
  */
 
+import { randomUUID } from 'crypto';
 import pino from 'pino';
 
 /**
@@ -22,15 +23,15 @@ const loggerOptions: pino.LoggerOptions = {
   },
 };
 
+export function generateCorrelationId(prefix = 'req'): string {
+  return `${prefix}-${randomUUID()}`;
+}
+
 /**
  * Create a logger instance with optional request ID
- * 
+ *
  * @param requestId - Optional request identifier for tracing
  * @returns Pino logger instance
- * 
- * @example
- * const logger = createLogger('req-123');
- * logger.info('Processing command');
  */
 export function createLogger(requestId?: string): pino.Logger {
   const baseLogger = pino(loggerOptions);
@@ -49,15 +50,12 @@ export const logger = createLogger();
 
 /**
  * Logger middleware for adding request IDs to context
- * 
+ *
  * @returns Middleware function that adds requestId to child logger
- * 
- * @example
- * app.use(requestLoggerMiddleware());
  */
 export function requestLoggerMiddleware() {
   return (req: any, res: any, next: () => void) => {
-    const requestId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const requestId = generateCorrelationId();
     (req as any).logger = createLogger(requestId);
     res.setHeader('X-Request-ID', requestId);
     next();
