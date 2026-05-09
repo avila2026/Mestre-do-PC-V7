@@ -1,6 +1,6 @@
 /**
  * Launcher Client for MestreDoPC V7
- * 
+ *
  * Communicates with MestreDoPC-Launcher.ps1 via HTTP (port 7777)
  * to execute PowerShell commands safely.
  */
@@ -17,39 +17,27 @@ const DEFAULT_TIMEOUT_MS = 30000;
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 
-/**
- * Response from launcher /run endpoint
- */
 interface RunResponse {
   jobId: string;
   status: string;
 }
 
-/**
- * Response from launcher /run-status endpoint
- */
 interface RunStatusResponse {
   status: 'running' | 'completed' | 'failed';
   result?: any;
   error?: string;
 }
 
-/**
- * Executes a command via the launcher with retry logic
- * 
- * @param url - The URL to POST to
- * @param command - The PowerShell command to execute
- * @param retries - Number of retry attempts
- * @returns The run response with jobId
- */
 async function postWithRetry(
   url: string,
   command: string,
+  requestLogger: typeof logger,
   retries = MAX_RETRIES
 ): Promise<RunResponse> {
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= retries; attempt++) {
+    const attemptStart = Date.now();
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -62,10 +50,14 @@ async function postWithRetry(
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
+      requestLogger.debug({ attempt, latencyMs: Date.now() - attemptStart }, 'Launcher submit attempt succeeded');
       return await (response.json() as Promise<RunResponse>);
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Unknown error');
-      logger.warn({ attempt, maxRetries: retries, error: lastError.message }, 'Retry attempt');
+      requestLogger.warn(
+        { attempt, maxRetries: retries, latencyMs: Date.now() - attemptStart, error: lastError.message },
+        'Retry attempt'
+      );
 
       if (attempt < retries) {
         await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS * attempt));
@@ -76,21 +68,16 @@ async function postWithRetry(
   throw lastError || new Error('Failed to execute command after all retries');
 }
 
-/**
- * Polls for command completion with timeout
- * 
- * @param jobId - The job identifier to poll
- * @param timeoutMs - Maximum time to wait for completion
- * @returns The final status response
- */
 async function pollForCompletion(
   jobId: string,
+  requestLogger: typeof logger,
   timeoutMs: number = DEFAULT_TIMEOUT_MS
 ): Promise<RunStatusResponse> {
   const startTime = Date.now();
-  const pollInterval = 1000; // 1 second
+  const pollInterval = 1000;
 
   while (Date.now() - startTime < timeoutMs) {
+    const pollStart = Date.now();
     try {
       const response = await fetch(`${LAUNCHER_BASE_URL}/run-status?jobId=${jobId}`, {
         method: 'GET',
@@ -102,14 +89,17 @@ async function pollForCompletion(
       }
 
       const status = await (response.json() as Promise<RunStatusResponse>);
+      const elapsedMs = Date.now() - startTime;
+      const pollLatencyMs = Date.now() - pollStart;
 
       if (status.status !== 'running') {
+        requestLogger.info({ jobId, elapsedMs, pollLatencyMs, status: status.status }, 'Launcher job completed state observed');
         return status;
       }
 
-      logger.debug({ jobId, elapsedMs: Date.now() - startTime }, 'Still running');
+      requestLogger.debug({ jobId, elapsedMs, pollLatencyMs }, 'Still running');
     } catch (error) {
-      logger.warn({ jobId, error: (error as Error).message }, 'Polling error');
+      requestLogger.warn({ jobId, error: (error as Error).message, pollLatencyMs: Date.now() - pollStart }, 'Polling error');
     }
 
     await new Promise((resolve) => setTimeout(resolve, pollInterval));
@@ -118,30 +108,20 @@ async function pollForCompletion(
   throw new Error(`Timeout waiting for job ${jobId} to complete`);
 }
 
-/**
- * Executes a launcher command with full security validation
- * 
- * @param toolName - The name of the tool to execute
- * @param params - Tool parameters
- * @returns Execution result
- * 
- * @example
- * executeLauncherCommand('limpeza_rapida_completa', { dryRun: 'true' })
- */
 export async function executeLauncherCommand(
   toolName: string,
-  params: Record<string, string>
+  params: Record<string, string>,
+  correlationId?: string
 ): Promise<any> {
-  const requestLogger = logger.child({ toolName, params: Object.keys(params) });
+  const requestLogger = logger.child({ correlationId, toolName, params: Object.keys(params) });
+  const executionStart = Date.now();
 
-  // Validate parameters against whitelist
   const validation = validateToolParams(toolName, params);
   if (!validation.isValid) {
     requestLogger.warn({ errors: validation.errors }, 'Invalid parameters');
     throw new Error(`Invalid parameters: ${validation.errors.join(', ')}`);
   }
 
-  // Check for injection attempts
   for (const [key, value] of Object.entries(params)) {
     if (detectInjection(value)) {
       requestLogger.error({ param: key }, 'Potential injection detected');
@@ -149,13 +129,11 @@ export async function executeLauncherCommand(
     }
   }
 
-  // Build safe command
   const safeCommand = buildSafeCommand(toolName, params);
   requestLogger.info('Executing safe command');
 
-  // Check for simulation mode
   if (process.env.SIMULATION_MODE === 'true') {
-    requestLogger.info('Simulation mode - command not executed');
+    requestLogger.info({ totalDurationMs: Date.now() - executionStart }, 'Simulation mode - command not executed');
     return {
       simulated: true,
       command: safeCommand,
@@ -163,22 +141,21 @@ export async function executeLauncherCommand(
     };
   }
 
-  // Execute via launcher
   try {
-    const runResponse = await postWithRetry(`${LAUNCHER_BASE_URL}/run`, safeCommand);
+    const runResponse = await postWithRetry(`${LAUNCHER_BASE_URL}/run`, safeCommand, requestLogger);
     requestLogger.info({ jobId: runResponse.jobId }, 'Command submitted to launcher');
 
-    const result = await pollForCompletion(runResponse.jobId);
-    requestLogger.info({ status: result.status }, 'Job completed');
+    const result = await pollForCompletion(runResponse.jobId, requestLogger);
 
     if (result.status === 'failed') {
       throw new Error(result.error || 'Job failed without error message');
     }
 
+    requestLogger.info({ totalDurationMs: Date.now() - executionStart }, 'Tool execution finished');
     return result.result;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    requestLogger.error({ error: errorMessage }, 'Execution failed');
+    requestLogger.error({ error: errorMessage, totalDurationMs: Date.now() - executionStart }, 'Execution failed');
     throw error;
   }
 }

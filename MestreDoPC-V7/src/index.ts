@@ -1,6 +1,6 @@
 /**
  * MestreDoPC V7 - MCP Server
- * 
+ *
  * Main entry point for the MCP (Model Context Protocol) server
  * that exposes Windows maintenance tools to AI assistants.
  */
@@ -11,19 +11,13 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { logger } from './logger.js';
+import { generateCorrelationId, logger } from './logger.js';
 import { getAvailableTools } from './security/whitelist.js';
 import { executeLauncherCommand } from './launcher-client.js';
 
-/**
- * MCP Server configuration
- */
 const SERVER_NAME = 'mestredopc-v7';
 const SERVER_VERSION = '7.0.0';
 
-/**
- * Initialize and start the MCP server
- */
 async function main() {
   logger.info('Starting MestreDoPC V7 MCP Server...');
 
@@ -39,7 +33,6 @@ async function main() {
     }
   );
 
-  // Handle ListTools request
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     const tools = getAvailableTools().map((toolName) => ({
       name: toolName,
@@ -59,24 +52,24 @@ async function main() {
     return { tools };
   });
 
-  // Handle CallTool request
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
-    const requestId = `call-${Date.now()}`;
-    const toolLogger = logger.child({ requestId, toolName: name });
+    const correlationId = generateCorrelationId('call');
+    const toolLogger = logger.child({ correlationId, toolName: name });
+    const startedAt = Date.now();
 
     toolLogger.info('Executing tool call');
 
     try {
       const params = (args?.params || {}) as Record<string, string>;
-      const result = await executeLauncherCommand(name, params);
-      toolLogger.info({ success: true }, 'Tool execution completed');
+      const result = await executeLauncherCommand(name, params, correlationId);
+      toolLogger.info({ success: true, latencyMs: Date.now() - startedAt }, 'Tool execution completed');
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      toolLogger.error({ error: errorMessage }, 'Tool execution failed');
+      toolLogger.error({ error: errorMessage, latencyMs: Date.now() - startedAt }, 'Tool execution failed');
       return {
         content: [{ type: 'text', text: `Error: ${errorMessage}` }],
         isError: true,
@@ -84,14 +77,12 @@ async function main() {
     }
   });
 
-  // Start server with stdio transport
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
   logger.info('MCP Server started successfully');
 }
 
-// Handle uncaught errors
 process.on('uncaughtException', (error) => {
   logger.error({ error: error.message }, 'Uncaught exception');
   process.exit(1);
@@ -102,7 +93,6 @@ process.on('unhandledRejection', (reason) => {
   process.exit(1);
 });
 
-// Start the server
 main().catch((error) => {
   logger.error({ error: error.message }, 'Failed to start server');
   process.exit(1);
