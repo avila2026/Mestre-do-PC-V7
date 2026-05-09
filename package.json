@@ -1,0 +1,11 @@
+{
+  "name": "mestredopc-v7-vercel-root",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Root package for Vercel builds in monorepo layout",
+  "scripts": {
+    "postinstall": "npm --prefix MestreDoPC-V7 install",
+    "build": "npm --prefix MestreDoPC-V7 run build",
+    "test": "npm --prefix MestreDoPC-V7 test"
+  }
+}
