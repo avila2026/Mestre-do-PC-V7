@@ -14,6 +14,7 @@ import {
 import { logger } from './logger.js';
 import { getAvailableTools } from './security/whitelist.js';
 import { executeLauncherCommand } from './launcher-client.js';
+import { normalizeToolParams } from './request-params.js';
 
 /**
  * MCP Server configuration
@@ -63,20 +64,21 @@ async function main() {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
     const requestId = `call-${Date.now()}`;
+    const startTime = Date.now();
     const toolLogger = logger.child({ requestId, toolName: name });
 
     toolLogger.info('Executing tool call');
 
     try {
-      const params = (args?.params || {}) as Record<string, string>;
+      const params = normalizeToolParams(args?.params);
       const result = await executeLauncherCommand(name, params);
-      toolLogger.info({ success: true }, 'Tool execution completed');
+      toolLogger.info({ success: true, durationMs: Date.now() - startTime, paramCount: Object.keys(params).length }, 'Tool execution completed');
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      toolLogger.error({ error: errorMessage }, 'Tool execution failed');
+      toolLogger.error({ error: errorMessage, durationMs: Date.now() - startTime }, 'Tool execution failed');
       return {
         content: [{ type: 'text', text: `Error: ${errorMessage}` }],
         isError: true,
