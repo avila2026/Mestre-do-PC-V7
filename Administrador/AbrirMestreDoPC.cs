@@ -65,10 +65,11 @@ static class AbrirMestreDoPC
             );
         }
 
+        string installDirClean = installDir.TrimEnd('\\', '/');
         RunElevatedPowerShell(string.Format(
             "-NoProfile -ExecutionPolicy Bypass -File \"{0}\" -InstallDir \"{1}\" -Quiet",
             registerScript,
-            installDir
+            installDirClean
         ));
 
         if (TaskExists() == false)

@@ -16,6 +16,7 @@
     "author": "Jeanc",
     "license": "ISC",
     "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.27.1"
+        "@modelcontextprotocol/sdk": "^1.27.1",
+        "dotenv": "^16.4.5"
     }
 }

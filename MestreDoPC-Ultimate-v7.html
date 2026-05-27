@@ -551,11 +551,17 @@
       }
       .ia-header h3 { color: var(--accent); font-size: 1rem; }
       .ia-header .ia-status { font-size: 0.75rem; color: #8b949e; }
-      .ia-header .ia-close {
+      .ia-header .ia-controls {
+        display: flex; gap: 8px;
+      }
+      .ia-header .ia-close,
+      .ia-header .ia-minimize {
         background: none; border: none; color: #8b949e;
         font-size: 1.3rem; cursor: pointer; transition: 0.2s;
       }
-      .ia-header .ia-close:hover { color: var(--danger); }
+      .ia-header .ia-close:hover,
+      .ia-header .ia-minimize:hover { color: var(--danger); }
+      .ia-header .ia-minimize:hover { color: var(--accent2); }
       .ia-messages {
         flex: 1; overflow-y: auto; padding: 16px;
         display: flex; flex-direction: column; gap: 12px;
@@ -643,13 +649,14 @@
 
     <div class="main">
       <div class="header">
-        <h1>
-          🛡️ Mestre do PC V7
-          <span style="font-size: 1.2rem; color: #8b949e; margin-left: 10px"
-            >| Licenciado para:
-            <span style="color: var(--accent2)">JEAN</span></span
-          >
-        </h1>
+<h1>
+           🛡️ Mestre do PC V7
+           <span style="font-size: 1.2rem; color: #8b949e; margin-left: 10px"
+             >| Licenciado para:
+             <span style="color: var(--accent2)">JEAN</span></span
+           >
+           <span style="font-size: 1rem; color: #8b949e; margin-left: 15px">⚡ 131 comandos</span>
+         </h1>
         <div class="header-right">
           <input
             type="text"

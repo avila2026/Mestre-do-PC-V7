@@ -75,9 +75,11 @@ class Installer
     {
         try
         {
+            string currentDir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
             ProcessStartInfo psi = new ProcessStartInfo
             {
                 FileName = Process.GetCurrentProcess().MainModule.FileName,
+                WorkingDirectory = currentDir,
                 UseShellExecute = true,
                 Verb = "runas",
             };
