@@ -270,6 +270,258 @@
         border-radius: 3px;
       }
 
+      /* ===== CONSOLE AVANÇADO ===== */
+      #outputPanel {
+        background: #010409;
+        border: 1px solid rgba(0, 212, 255, 0.3);
+        border-radius: 12px;
+        overflow: hidden;
+        display: none;
+        flex-direction: column;
+        transition: all 0.3s ease;
+      }
+      #outputPanel.expanded {
+        position: fixed;
+        top: 10px; left: 270px; right: 10px; bottom: 10px;
+        z-index: 5000;
+        width: auto !important;
+        margin-left: 0 !important;
+      }
+      #outputPanel .output-toolbar {
+        padding: 10px 16px;
+        background: rgba(0, 212, 255, 0.08);
+        border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      #outputPanel .output-toolbar .toolbar-left {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      }
+      #outputPanel .output-toolbar .toolbar-right {
+        display: flex; align-items: center; gap: 6px;
+      }
+      #outputPanel .output-toolbar .console-title {
+        color: var(--accent); font-weight: bold; font-size: 0.9rem;
+        display: flex; align-items: center; gap: 6px;
+      }
+      #outputPanel .output-toolbar .cmd-badge {
+        font-size: 0.7rem; background: rgba(0,255,136,0.15);
+        color: var(--accent2); border-radius: 20px;
+        padding: 2px 10px; font-weight: 600; border: 1px solid rgba(0,255,136,0.2);
+      }
+      #outputPanel .output-toolbar .timer-badge {
+        font-size: 0.7rem; background: rgba(0,212,255,0.12);
+        color: var(--accent); border-radius: 20px;
+        padding: 2px 10px; font-weight: 600; border: 1px solid rgba(0,212,255,0.2);
+        display: none; align-items: center; gap: 4px;
+      }
+      #outputPanel .output-toolbar .timer-badge.active { display: inline-flex; }
+      #outputPanel .output-toolbar .spinner {
+        width: 12px; height: 12px; border: 2px solid rgba(0,212,255,0.2);
+        border-top-color: var(--accent); border-radius: 50%;
+        animation: spin 0.8s linear infinite; display: none;
+      }
+      #outputPanel .output-toolbar .spinner.active { display: inline-block; }
+      #outputPanel .output-toolbar .job-counter {
+        font-size: 0.7rem; background: rgba(255,193,7,0.12);
+        color: #ffc107; border-radius: 20px;
+        padding: 2px 10px; font-weight: 600; border: 1px solid rgba(255,193,7,0.2);
+        display: none; align-items: center; gap: 4px;
+      }
+      #outputPanel .output-toolbar .job-counter.active { display: inline-flex; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .console-log-container {
+        flex: 1; overflow-y: auto; display: flex; flex-direction: column;
+        padding: 8px 0; gap: 4px;
+      }
+      .console-entry {
+        padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+        transition: background 0.2s;
+      }
+      .console-entry:hover {
+        background: rgba(0, 212, 255, 0.03);
+      }
+      .console-entry .entry-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        gap: 8px; margin-bottom: 8px; flex-wrap: wrap;
+      }
+      .console-entry .entry-meta {
+        display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+      }
+      .console-entry .entry-time {
+        font-size: 0.68rem; color: #6e7681; font-family: Consolas, monospace;
+      }
+      .console-entry .entry-label {
+        font-size: 0.68rem; padding: 1px 8px; border-radius: 10px;
+        font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+      }
+      .console-entry .entry-label.success {
+        background: rgba(35,134,54,0.15); color: #3fb950;
+      }
+      .console-entry .entry-label.error {
+        background: rgba(248,81,73,0.15); color: #f85149;
+      }
+      .console-entry .entry-label.running {
+        background: rgba(0,212,255,0.12); color: var(--accent);
+        display: inline-flex; align-items: center; gap: 4px;
+      }
+      .console-entry .entry-label.running::before {
+        content: ""; width: 6px; height: 6px; background: var(--accent);
+        border-radius: 50%; animation: pulse 1.2s infinite;
+      }
+      @keyframes pulse { 0%,100%{opacity:.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.4)} }
+      .console-entry code.entry-cmd {
+        display: block; background: rgba(255,255,255,0.03);
+        padding: 8px 12px; border-radius: 6px; font-family: "Cascadia Mono", Consolas, monospace;
+        font-size: 0.76rem; color: #8b949e; margin-bottom: 8px;
+        border-left: 2px solid var(--accent); white-space: pre-wrap; word-break: break-all;
+      }
+      .console-entry pre.entry-output {
+        background: transparent; padding: 0; margin: 0;
+        font-family: "Cascadia Mono", Consolas, monospace;
+        font-size: 0.82rem; color: #e6edf3;
+        white-space: pre-wrap; word-break: break-all; max-height: 220px;
+        overflow-y: auto;
+      }
+      .console-entry pre.entry-output.expanded {
+        max-height: none;
+      }
+      .console-entry .entry-actions {
+        display: flex; gap: 6px; margin-top: 8px;
+      }
+      .console-entry .entry-actions button {
+        padding: 4px 12px; border: none; border-radius: 6px;
+        font-size: 0.72rem; font-weight: 600; cursor: pointer;
+        transition: 0.2s; opacity: 0.7;
+      }
+      .console-entry .entry-actions button:hover { opacity: 1; transform: scale(1.05); }
+      .console-entry .entry-actions .btn-copy-out {
+        background: rgba(0,212,255,0.12); color: var(--accent); border: 1px solid rgba(0,212,255,0.2);
+      }
+      .console-entry .entry-actions .btn-expand {
+        background: rgba(255,255,255,0.05); color: #8b949e; border: 1px solid var(--border);
+      }
+      .console-toolbar-btn {
+        background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+        color: #8b949e; cursor: pointer; font-size: 0.82rem;
+        padding: 5px 12px; border-radius: 6px; transition: 0.2s;
+      }
+      .console-toolbar-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+      .console-empty {
+        padding: 24px; text-align: center; color: #6e7681; font-size: 0.88rem;
+      }
+      /* ===== CONSOLE FILTERS ===== */
+      .console-filter-bar {
+        display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+        padding: 0 16px 8px; border-bottom: 1px solid rgba(255,255,255,0.04);
+      }
+      .console-filter-btn {
+        padding: 4px 12px; border: 1px solid var(--border); border-radius: 20px;
+        background: rgba(255,255,255,0.03); color: #8b949e; font-size: 0.72rem;
+        font-weight: 600; cursor: pointer; transition: 0.2s; white-space: nowrap;
+      }
+      /* ===== METRIC GAUGES ===== */
+      .console-metrics {
+        display: flex; flex-direction: column; gap: 8px; padding: 8px 12px;
+        background: rgba(255,255,255,0.02); border: 1px solid rgba(0,212,255,0.1);
+        border-radius: 8px; margin: 8px 0;
+        max-height: 300px; overflow-y: auto;
+      }
+      .console-metrics .metric-row {
+        display: flex; align-items: center; gap: 10px;
+      }
+      .console-metrics .metric-label {
+        font-size: 0.7rem; color: #8b949e; width: 50px; text-align: right;
+        font-weight: 600; flex-shrink: 0;
+      }
+      .console-metrics .metric-bar-track {
+        flex: 1; height: 8px; background: rgba(255,255,255,0.06);
+        border-radius: 4px; overflow: hidden; position: relative;
+      }
+      .console-metrics .metric-bar-fill {
+        height: 100%; border-radius: 4px; transition: width 0.8s ease, background 0.3s;
+        position: relative;
+      }
+      .console-metrics .metric-bar-fill::after {
+        content: ""; position: absolute; right: 0; top: 0; bottom: 0;
+        width: 2px; background: rgba(0,0,0,0.3); border-radius: 0 4px 4px 0;
+      }
+      .console-metrics .metric-bar-fill.good { background: linear-gradient(90deg, #238636, #2ea043); }
+      .console-metrics .metric-bar-fill.warn { background: linear-gradient(90deg, #d29922, #f0ad4e); }
+      .console-metrics .metric-bar-fill.danger { background: linear-gradient(90deg, #da3633, #f85149); }
+      .console-metrics .metric-value {
+        font-size: 0.72rem; font-family: "Cascadia Mono", Consolas, monospace;
+        color: #c9d1d9; font-weight: 600; white-space: nowrap;
+        min-width: 42px; text-align: right;
+      }
+      .console-metrics .metric-value.danger { color: #f85149; }
+      .console-metrics .gauge-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 4px;
+      }
+      .console-metrics .gauge-card {
+        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.04);
+        border-radius: 8px; padding: 10px 12px; text-align: center;
+      }
+      .console-metrics .gauge-card .gauge-value {
+        font-size: 1.1rem; font-weight: 700; font-family: var(--mono);
+        color: var(--accent); line-height: 1.2;
+      }
+      .console-metrics .gauge-card .gauge-label {
+        font-size: 0.65rem; color: #6e7681; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+      }
+      @keyframes metricReveal {
+        from { opacity: 0; transform: translateX(-8px); }
+        to   { opacity: 1; transform: translateX(0); }
+      }
+      .console-metrics > * {
+        animation: metricReveal 0.4s ease forwards;
+      }
+      /* ===== CONSOLE FILTERS ===== */
+      .console-filter-btn:hover {
+        background: rgba(255,255,255,0.07); color: var(--text);
+      }
+      .console-filter-btn.active {
+        background: rgba(0,212,255,0.12); border-color: var(--accent);
+        color: var(--accent);
+      }
+      .console-filter-btn.active.filter-success {
+        background: rgba(35,134,54,0.15); border-color: #238636; color: #3fb950;
+      }
+      .console-filter-btn.active.filter-error {
+        background: rgba(248,81,73,0.12); border-color: #f85149; color: #f85149;
+      }
+      .console-filter-btn.active.filter-running {
+        background: rgba(0,212,255,0.1); border-color: var(--accent); color: var(--accent);
+      }
+      .console-notification-toast {
+        position: fixed; bottom: 80px; right: 20px;
+        background: rgba(13,17,23,0.95); border: 1px solid var(--accent);
+        border-radius: 12px; padding: 14px 18px; max-width: 360px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(0,212,255,0.1);
+        z-index: 9998; color: var(--text); font-size: 0.88rem;
+        display: none; flex-direction: column; gap: 6px;
+        transition: opacity 0.3s, transform 0.3s;
+        opacity: 0; transform: translateY(10px);
+      }
+      .console-notification-toast.show {
+        display: flex; opacity: 1; transform: translateY(0);
+      }
+      .console-notification-toast .nt-title {
+        font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 6px;
+      }
+      .console-notification-toast .nt-body {
+        color: #8b949e; font-size: 0.82rem; line-height: 1.4;
+      }
+      .console-notification-toast .nt-close {
+        position: absolute; top: 8px; right: 12px;
+        background: none; border: none; color: #6e7681;
+        cursor: pointer; font-size: 1rem; line-height: 1;
+      }
+      .console-notification-toast .nt-close:hover { color: #fff; }
+
       /* ===== CHAT IA OLLAMA ===== */
       .ia-overlay {
         position: fixed; inset: 0;
@@ -465,61 +717,45 @@
         </div>
       </div>
 
-      <!-- Painel de Output -->
-      <div
-        id="outputPanel"
-        style="
-          display: none;
-          margin-bottom: 20px;
-          background: #010409;
-          border: 1px solid rgba(0, 212, 255, 0.3);
-          border-radius: 12px;
-          overflow: hidden;
-        "
-      >
-        <div
-          style="
-            padding: 10px 16px;
-            background: rgba(0, 212, 255, 0.08);
-            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          "
-        >
-          <span
-            style="color: var(--accent); font-weight: bold; font-size: 0.9rem"
-            >⚡ Output do Comando</span
-          >
-          <button
-            onclick="
-              document.getElementById('outputPanel').style.display = 'none'
-            "
-            style="
-              background: none;
-              border: none;
-              color: #8b949e;
-              cursor: pointer;
-              font-size: 1.1rem;
-            "
-          >
-            ✕
-          </button>
+      <!-- Painel de Output Avançado -->
+      <div id="outputPanel">
+        <div class="output-toolbar">
+          <div class="toolbar-left">
+            <span class="console-title">⚡ Console Avançado</span>
+            <span class="cmd-badge" id="lastCmdBadge"></span>
+            <span class="timer-badge" id="timerBadge"><span id="timerValue">00:00</span></span>
+            <span class="spinner" id="consoleSpinner"></span>
+            <span class="job-counter" id="jobCounter"><span id="jobCount">0</span> job(s)</span>
+          </div>
+          <div class="toolbar-right">
+            <button class="console-toolbar-btn" onclick="requestNotificationPermission()" title="Ativar notificações" id="notifBtn">🔔 Notificações</button>
+            <button class="console-toolbar-btn" onclick="exportConsoleToTxt()" title="Exportar log">💾 Exportar</button>
+            <button class="console-toolbar-btn" onclick="clearConsole()" title="Limpar console">🧹 Limpar</button>
+            <button class="console-toolbar-btn" onclick="toggleConsoleExpand()" title="Expandir/Reduzir">🔽 Expandir</button>
+            <button class="console-toolbar-btn" onclick="document.getElementById('outputPanel').style.display='none'" title="Fechar">✕</button>
+          </div>
         </div>
-        <pre
-          id="outputContent"
-          style="
-            padding: 16px;
-            font-family: &quot;Cascadia Mono&quot;, Consolas, monospace;
-            font-size: 0.82rem;
-            color: #e6edf3;
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-height: 280px;
-            overflow-y: auto;
-            margin: 0;
-          "
-        ></pre>
+        <!-- Filtros do Console -->
+        <div class="console-filter-bar" id="consoleFilterBar">
+          <span style="color:#6e7681; font-size:0.7rem; font-weight:600; margin-right:4px;">Filtros:</span>
+          <button class="console-filter-btn active" data-filter="all" onclick="applyConsoleFilter('all')">📋 Todos</button>
+          <button class="console-filter-btn" data-filter="running" onclick="applyConsoleFilter('running')">🔄 Executando</button>
+          <button class="console-filter-btn" data-filter="success" onclick="applyConsoleFilter('success')">✓ Sucesso</button>
+          <button class="console-filter-btn" data-filter="error" onclick="applyConsoleFilter('error')">✗ Erro</button>
+          <div style="margin-left:auto; display:flex; align-items:center; gap:6px;">
+            <button class="console-toolbar-btn" onclick="toggleAutoScroll()" id="autoScrollBtn" title="Auto-scroll">⬇️ Auto-scroll</button>
+          </div>
+        </div>
+        <div class="console-log-container" id="consoleLogContainer">
+          <div class="console-empty" id="consoleEmpty">Nenhum comando executado ainda. Selecione um comando e clique em "Executar".</div>
+        </div>
+      </div>
+
+      <!-- Toast de Notificação do Console -->
+      <div class="console-notification-toast" id="consoleNotif">
+        <button class="nt-close" onclick="hideConsoleNotification()">✕</button>
+        <span class="nt-title" id="notifTitle">✅ Comando Concluído</span>
+        <span class="nt-body" id="notifBody"></span>
       </div>
 
       <div id="categories"></div>
@@ -1304,6 +1540,35 @@
         }
       }
 
+      // ===== CONSOLE AVANCADO STATE =====
+      let consoleHistory = [];
+      let activeJobs = {}; // jobId -> { entryEl, cmd, status }
+      let consoleExpanded = false;
+      let consoleTimerInterval = null;
+      let consoleStartTime = null;
+      let autoScrollEnabled = true;
+      let userScrolledUp = false;
+      let currentFilter = "all";
+      let notifEnabled = false;
+      const STORAGE_KEY = "mestre_console_history";
+      const NOTIF_KEY = "mestre_notif_enabled";
+      const AUTOSCROLL_KEY = "mestre_autoscroll";
+      const MAX_HISTORY = 100;
+      const HISTORY_RETENTION_MS = 24 * 60 * 60 * 1000; // 24 horas
+
+      // Carrega configurações do localStorage
+      document.addEventListener("DOMContentLoaded", () => {
+        const savedFilter = localStorage.getItem("mestre_console_filter");
+        if (savedFilter) currentFilter = savedFilter;
+        const savedAutoScroll = localStorage.getItem(AUTOSCROLL_KEY);
+        if (savedAutoScroll !== null) autoScrollEnabled = savedAutoScroll === "true";
+        const savedNotif = localStorage.getItem(NOTIF_KEY);
+        if (savedNotif === "true") { notifEnabled = true; updateNotifButton(); }
+        updateAutoScrollButton();
+        applyConsoleFilter(currentFilter, false);
+        loadConsoleHistory();
+      });
+
       function copyById(uid) {
         const text = document.getElementById(uid).innerText.trim();
         navigator.clipboard
@@ -1311,7 +1576,627 @@
           .then(() => showToast("📋 Copiado!"));
       }
 
+      // ===== CONSOLE FUNCTIONS =====
+      function ensureConsoleVisible() {
+        const panel = document.getElementById("outputPanel");
+        if (panel.style.display !== "flex") {
+          panel.style.display = "flex";
+          panel.style.marginBottom = "20px";
+        }
+        document.getElementById("consoleEmpty").style.display = "none";
+      }
+
+      function updateJobCounter() {
+        const count = Object.keys(activeJobs).length;
+        const badge = document.getElementById("jobCounter");
+        const countEl = document.getElementById("jobCount");
+        countEl.textContent = count;
+        badge.classList.toggle("active", count > 0);
+      }
+
+      function updateTimerDisplay() {
+        const el = document.getElementById("timerValue");
+        const badge = document.getElementById("timerBadge");
+        if (consoleStartTime) {
+          const secs = Math.floor((Date.now() - consoleStartTime) / 1000);
+          const m = String(Math.floor(secs / 60)).padStart(2, "0");
+          const s = String(secs % 60).padStart(2, "0");
+          el.textContent = `${m}:${s}`;
+          badge.classList.add("active");
+        } else {
+          badge.classList.remove("active");
+        }
+      }
+
+      function startGlobalTimer() {
+        if (Object.keys(activeJobs).length === 1) {
+          consoleStartTime = Date.now();
+          if (!consoleTimerInterval) {
+            consoleTimerInterval = setInterval(updateTimerDisplay, 1000);
+            updateTimerDisplay();
+          }
+        }
+        document.getElementById("consoleSpinner").classList.add("active");
+      }
+
+      function stopGlobalTimer() {
+        if (Object.keys(activeJobs).length === 0) {
+          if (consoleTimerInterval) {
+            clearInterval(consoleTimerInterval);
+            consoleTimerInterval = null;
+          }
+          consoleStartTime = null;
+          document.getElementById("timerBadge").classList.remove("active");
+          document.getElementById("consoleSpinner").classList.remove("active");
+        }
+      }
+
+      // ===== LOCALSTORAGE =====
+      function loadConsoleHistory() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+          const data = JSON.parse(raw);
+          if (!Array.isArray(data.entries)) return;
+          const cutoff = Date.now() - HISTORY_RETENTION_MS;
+          const valid = data.entries.filter(e => e.timestamp > cutoff);
+          if (valid.length === 0) return;
+          // Reconstroi entradas no DOM
+          const container = document.getElementById("consoleLogContainer");
+          container.innerHTML = "";
+          valid.reverse().forEach(entry => renderStoredEntry(entry));
+          // Atualiza contador se tiver jobs ativos
+          updateJobCounter();
+        } catch {
+          /* ignora erros de parse */
+        }
+      }
+
+      function saveConsoleHistory() {
+        try {
+          const entries = [...document.querySelectorAll(".console-entry")].reverse().map(el => {
+            const timeEl = el.querySelector(".entry-time");
+            const labelEl = el.querySelector(".entry-label");
+            const cmdEl = el.querySelector(".entry-cmd");
+            const outEl = el.querySelector(".entry-output");
+            return {
+              id: el.dataset.jobId || "stored-" + Date.now() + "-" + Math.random(),
+              timestamp: parseInt(el.dataset.timestamp || "0", 10) || Date.now(),
+              time: timeEl?.textContent || "",
+              status: labelEl?.dataset.status || (labelEl?.classList?.contains("success") ? "success" : labelEl?.classList?.contains("error") ? "error" : "running"),
+              cmd: cmdEl?.textContent || "",
+              output: outEl?.textContent || "",
+              cmdFull: el.dataset.cmdFull || "",
+              exitCode: el.dataset.exitCode || null,
+            };
+          });
+          // Mantém apenas os mais recentes
+          const trimmed = entries.slice(-MAX_HISTORY);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ entries: trimmed, savedAt: Date.now() }));
+        } catch {
+          /* ignora erros de storage */
+        }
+      }
+
+      function renderStoredEntry(entry) {
+        ensureConsoleVisible();
+        const container = document.getElementById("consoleLogContainer");
+        const el = document.createElement("div");
+        el.className = "console-entry";
+        el.dataset.jobId = entry.id;
+        el.dataset.timestamp = entry.timestamp;
+        el.dataset.cmdFull = entry.cmdFull || entry.cmd;
+        el.dataset.status = entry.status;
+        if (entry.exitCode != null) el.dataset.exitCode = entry.exitCode;
+
+        const statusClass = entry.status === "success" ? "success" : entry.status === "error" ? "error" : "running";
+        const statusText = entry.status === "success" ? "✓ Sucesso" + (entry.exitCode != null ? ` (exit ${entry.exitCode})` : "") : entry.status === "error" ? "✗ Falhou" : "● Executando";
+
+        el.innerHTML = `
+          <div class="entry-header">
+            <div class="entry-meta">
+              <span class="entry-time">${entry.time || new Date(entry.timestamp).toLocaleTimeString("pt-BR")}</span>
+              <span class="entry-label ${statusClass}" data-status="${entry.status}">${statusText}</span>
+            </div>
+          </div>
+          <code class="entry-cmd">${(entry.cmdFull || entry.cmd).replace(/</g,"&lt;").replace(/>/g,"&gt;")}</code>
+          <pre class="entry-output" id="out-${entry.id}" style="color:${entry.status === "error" ? "#f85149" : "#e6edf3"}">${entry.output.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>
+          <div class="entry-actions" id="acts-${entry.id}" style="display:flex">
+            <button class="btn-copy-out" onclick="copyOutputByJob('${entry.id}')">📋 Copiar</button>
+            <button class="btn-expand" onclick="toggleOutputExpand('${entry.id}')">🔽 Expandir</button>
+          </div>
+        `;
+        container.insertBefore(el, container.firstChild);
+      }
+
+      // ===== FILTROS =====
+      function applyConsoleFilter(filter, persist = true) {
+        currentFilter = filter;
+        if (persist) localStorage.setItem("mestre_console_filter", filter);
+
+        // Atualiza botões
+        document.querySelectorAll(".console-filter-btn").forEach(btn => {
+          const isActive = btn.dataset.filter === filter;
+          btn.classList.toggle("active", isActive);
+          btn.classList.remove("filter-success", "filter-error", "filter-running");
+          if (isActive && filter === "success") btn.classList.add("filter-success");
+          if (isActive && filter === "error") btn.classList.add("filter-error");
+          if (isActive && filter === "running") btn.classList.add("filter-running");
+        });
+
+        // Aplica visibilidade nas entradas
+        document.querySelectorAll(".console-entry").forEach(el => {
+          if (filter === "all") { el.style.display = ""; return; }
+          const status = el.dataset.status || "";
+          const labelEl = el.querySelector(".entry-label");
+          const derived = labelEl?.classList.contains("success") ? "success" : labelEl?.classList.contains("error") ? "error" : labelEl?.classList.contains("running") ? "running" : "";
+          el.style.display = (status === filter || derived === filter) ? "" : "none";
+        });
+      }
+
+      function createConsoleEntry(cmd, jobId) {
+        ensureConsoleVisible();
+        const container = document.getElementById("consoleLogContainer");
+
+        const entry = document.createElement("div");
+        entry.className = "console-entry";
+        entry.dataset.jobId = jobId;
+        entry.dataset.timestamp = Date.now();
+        entry.dataset.cmdFull = cmd;
+        entry.dataset.status = "running";
+        entry.style.opacity = "0";
+        entry.style.transform = "translateY(-6px)";
+        entry.style.transition = "opacity 0.3s, transform 0.3s";
+
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString("pt-BR");
+        const cmdPreview = cmd.length > 120 ? cmd.substring(0, 120) + "..." : cmd;
+
+        entry.innerHTML = `
+          <div class="entry-header">
+            <div class="entry-meta">
+              <span class="entry-time">${timeStr}</span>
+              <span class="entry-label running" data-status="running" id="lbl-${jobId}"><span style="width:6px;height:6px;background:var(--accent);border-radius:50%;display:inline-block;margin-right:5px;animation:pulse 1.2s infinite;"></span>Executando</span>
+            </div>
+          </div>
+          <code class="entry-cmd">${cmdPreview.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</code>
+          <pre class="entry-output" id="out-${jobId}">⏳ Aguardando resultado...</pre>
+          <div class="entry-actions" id="acts-${jobId}" style="display:none">
+            <button class="btn-copy-out" onclick="copyOutputByJob('${jobId}')">📋 Copiar</button>
+            <button class="btn-expand" onclick="toggleOutputExpand('${jobId}')">🔽 Expandir</button>
+          </div>
+        `;
+
+        container.insertBefore(entry, container.firstChild);
+        setTimeout(() => {
+          entry.style.opacity = "1";
+          entry.style.transform = "translateY(0)";
+        }, 10);
+        smartAutoScroll(entry);
+        return entry;
+      }
+
+      function finalizeConsoleEntry(jobId, success, output, exitCode) {
+        const label = document.getElementById(`lbl-${jobId}`);
+        const outEl = document.getElementById(`out-${jobId}`);
+        const acts = document.getElementById(`acts-${jobId}`);
+        const entry = label?.closest(".console-entry");
+        if (!label || !outEl) return;
+
+        const status = success ? "success" : "error";
+        label.className = `entry-label ${status}`;
+        label.textContent = success ? `✓ Sucesso${exitCode !== null && exitCode !== undefined ? ` (exit ${exitCode})` : ""}` : "✗ Falhou";
+        label.dataset.status = status;
+
+        if (entry) {
+          entry.dataset.status = status;
+          if (exitCode != null) entry.dataset.exitCode = exitCode;
+        }
+
+        outEl.textContent = output || "(sem output)";
+        outEl.style.color = success ? "#e6edf3" : "#f85149";
+        if (!success) {
+          if (typeof output === "string" && (output.includes("ERRO") || output.includes("Falha") || output.includes("erro"))) {
+            outEl.style.color = "#f85149";
+          }
+        }
+
+        if (acts) acts.style.display = "flex";
+
+        // Aplica filtro atual se necessário
+        if (currentFilter !== "all" && currentFilter !== status) {
+          entry.style.display = "none";
+        }
+
+        // Notificação
+        if (notifEnabled && "Notification" in window) {
+          const cmdPreview = entry?.querySelector(".entry-cmd")?.textContent?.substring(0, 60) || "Comando";
+          showBrowserNotification(
+            success ? "✅ Comando Concluído" : "❌ Comando Falhou",
+            `CMD: "${cmdPreview}"\nStatus: ${success ? "Sucesso" : "Falha"}\n${(output || "").substring(0, 120)}`
+          );
+        }
+
+        // ===== INJEÇÃO DE MÉTRICAS VISUAIS (GAUGES + PROGRESS BARS) =====
+        const metrics = parseConsoleMetrics(output);
+        if (metrics && metrics.length > 0) {
+          const metricsEl = document.createElement("div");
+          metricsEl.className = "console-metrics";
+          metricsEl.appendChild(renderMetricsHTML(metrics));
+          entry.insertBefore(metricsEl, outEl);
+        }
+
+        // Toast interno
+        showConsoleNotification(
+          success ? "✅ Comando Concluído" : "❌ Comando Falhou",
+          (output || "").substring(0, 200)
+        );
+
+        saveConsoleHistory();
+      }
+
+      // ===== PARSING DE MÉTRICAS DO POWERSHELL =====
+      function parseConsoleMetrics(output) {
+        if (!output || typeof output !== "string") return [];
+        const text = output;
+        const metrics = [];
+
+        // ——— RAM ———
+        const ramMatch = text.match(/RAM\s*[Livre|livre]*:\s*([\d,.]+?)\s*GB\s*[li]*\w*\s*de\s*([\d,.]+?)\s*GB/i);
+        if (ramMatch) {
+          const livre = parseFloat(ramMatch[1].replace(",", "."));
+          const total = parseFloat(ramMatch[2].replace(",", "."));
+          if (livre > 0 && total > 0) {
+            const used = Math.max(0, total - livre);
+            const pct = Math.min(100, Math.max(0, (used / total) * 100));
+            metrics.push({ type: "bar", label: "RAM", value: pct, text: `${used.toFixed(1)}/${total.toFixed(1)} GB`, unit: "%", warn: 70, danger: 90, title: `Usado: ${used.toFixed(1)} GB / ${total.toFixed(1)} GB (${pct.toFixed(0)}%)` });
+          }
+        }
+
+        // ——— DISCO (Formato: Usado(GB), Livre(GB), Total(GB)) ———
+        const diskMatches = text.matchAll(/Name\s+(?:Usado\(GB\)[\t\s]+Livre\(GB\)[\t\s]+Total\(GB\)[\t\s]+|Free\(GB\)[\t\s]+Size\(GB\)[\t\s]+)[\r\n]+([\s\S]+?)(?:\r?\n){2,}/gi);
+        let diskFound = false;
+        for (const m of diskMatches) {
+          const lines = m[1].trim().split(/\r?\n/);
+          for (const line of lines) {
+            const nums = line.match(/([A-Z])\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)/);
+            if (nums) {
+              drive = nums[1]; const used = parseFloat(nums[2].replace(",", ".")); const free = parseFloat(nums[3].replace(",", ".")); const total = parseFloat(nums[4].replace(",", "."));
+              if (total > 0) {
+                const pctUsed = (used / total) * 100;
+                metrics.push({ type: "bar", label: `Disco ${drive}`, value: pctUsed, text: `${free.toFixed(1)}/${total.toFixed(1)} GB livre`, unit: "%", warn: 70, danger: 90, title: `${drive}: ${used.toFixed(1)} GB usado de ${total.toFixed(1)} GB` });
+                diskFound = true;
+              }
+            }
+          }
+        }
+        // Fallback DISM ou outro formato
+        if (!diskFound) {
+          const diskMatch2 = text.match(/Disco\s*C:\s*([\d,.]+)\s*GB\s*livre\s*de\s*([\d,.]+)\s*GB/i);
+          if (diskMatch2) {
+            const livre = parseFloat(diskMatch2[1].replace(",", "."));
+            const total = parseFloat(diskMatch2[2].replace(",", "."));
+            const pctUsed = ((total - livre) / total) * 100;
+            metrics.push({ type: "bar", label: "Disco C:", value: pctUsed, text: `${livre.toFixed(1)}/${total.toFixed(1)} GB livre`, unit: "%", warn: 70, danger: 90, title: `C: ${(total-livre).toFixed(1)} GB usado de ${total.toFixed(1)} GB` });
+          }
+        }
+
+        // ——— UPTIME ———
+        const uptimeMatch = text.match(/Uptime:\s*(\d+)\s*dias/i);
+        if (uptimeMatch) {
+          const days = parseInt(uptimeMatch[1], 10);
+          metrics.push({ type: "gauge", label: "Uptime", value: days, suffix: "d", warn: 7, danger: 30, title: `${days} dias ligado` });
+        }
+
+        // ——— CPU ———
+        const cpuMatch = text.match(/CPU:\s*(.+)/);
+        if (cpuMatch) {
+          const cpuName = cpuMatch[1].trim();
+          metrics.push({ type: "text", label: "CPU", value: cpuName, title: cpuName });
+        }
+
+        // ——— GPU ———
+        const gpuMatch = text.match(/Name\s+DriverVersion\s+VRAM\(GB\)[\r\n]+([\w\s]+)\s+([\d.]+)\s+([\d,.]+)/);
+        if (gpuMatch) {
+          const vram = parseFloat(gpuMatch[3].replace(",", "."));
+          metrics.push({ type: "gauge", label: "GPU VRAM", value: vram, suffix: "GB", title: `VRAM: ${vram} GB` });
+        }
+
+        // ——— TEMPERATURA ———
+        const tempMatch = text.match(/Zona:\s*.+?\s*-\u003e\s*([\d,.]+)\s*°C/);
+        if (tempMatch) {
+          const temp = parseFloat(tempMatch[1].replace(",", "."));
+          metrics.push({ type: "gauge", label: "Temp", value: temp, suffix: "°C", warn: 70, danger: 85, title: `Temperatura: ${temp.toFixed(0)}°C` });
+        }
+
+        // ——— BOOT TIME ———
+        const bootMatch = text.match(/boot:\s*([\w\s:]+)/i);
+        if (bootMatch) {
+          const bootDate = bootMatch[1].trim();
+          metrics.push({ type: "text", label: "Boot", value: bootDate, title: `Último boot: ${bootDate}` });
+        }
+
+        return metrics;
+      }
+
+      function renderMetricsHTML(metrics) {
+        const frag = document.createDocumentFragment();
+
+        // Progress bars
+        const bars = metrics.filter(m => m.type === "bar");
+        if (bars.length > 0) {
+          for (const m of bars) {
+            const row = document.createElement("div");
+            row.className = "metric-row";
+            let health = m.value >= m.danger ? "danger" : m.value >= m.warn ? "warn" : "good";
+            row.innerHTML = `
+              <span class="metric-label" title="${m.title}">${m.label}</span>
+              <div class="metric-bar-track"><div class="metric-bar-fill ${health}" style="width:0%"></div></div>
+              <span class="metric-value ${health}">${m.text}</span>
+            `;
+            frag.appendChild(row);
+            // Animate
+            setTimeout(() => {
+              const fill = row.querySelector(".metric-bar-fill");
+              if (fill) fill.style.width = `${m.value}%`;
+            }, 50);
+          }
+        }
+
+        // Gauge grid
+        const gauges = metrics.filter(m => m.type === "gauge");
+        if (gauges.length > 0) {
+          const grid = document.createElement("div");
+          grid.className = "gauge-grid";
+          for (const m of gauges) {
+            let color = "var(--accent)";
+            if (m.danger != null && m.value >= m.danger) color = "#f85149";
+            else if (m.warn != null && m.value >= m.warn) color = "#f0ad4e";
+            const card = document.createElement("div");
+            card.className = "gauge-card";
+            card.innerHTML = `
+              <div class="gauge-value" style="color:${color}" title="${m.title}">${m.value}${m.suffix || ""}</div>
+              <div class="gauge-label">${m.label}</div>
+            `;
+            grid.appendChild(card);
+          }
+          frag.appendChild(grid);
+        }
+
+        // Text-only info
+        const texts = metrics.filter(m => m.type === "text");
+        if (texts.length > 0) {
+          const infoRow = document.createElement("div");
+          infoRow.style.cssText = "display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;";
+          for (const m of texts) {
+            const chip = document.createElement("span");
+            chip.className = "metric-value";
+            chip.style.cssText = "font-size:0.68rem;padding:2px 8px;background:rgba(255,255,255,0.03);border-radius:4px;border:1px solid rgba(255,255,255,0.05);";
+            chip.title = m.title;
+            chip.textContent = `${m.label}: ${m.value}`;
+            infoRow.appendChild(chip);
+          }
+          frag.appendChild(infoRow);
+        }
+
+        return frag;
+      }
+
+      // ===== NOTIFICAÇÕES NATIVAS DO NAVEGADOR =====
+      async function requestNotificationPermission() {
+        if (!("Notification" in window)) {
+          showToast("ℹ️ Seu navegador não suporta notificações nativas.", "#00d4ff");
+          return;
+        }
+        try {
+          const perm = await Notification.requestPermission();
+          if (perm === "granted") {
+            notifEnabled = true;
+            localStorage.setItem(NOTIF_KEY, "true");
+            showToast("🔔 Notificações ativadas!", "var(--accent2)");
+            updateNotifButton();
+            // Testa
+            showBrowserNotification("🔔 Notificações Ativas", "Você será notificado quando comandos terminarem, mesmo com a aba em segundo plano.");
+          } else {
+            notifEnabled = false;
+            localStorage.setItem(NOTIF_KEY, "false");
+            showToast("⚠️ Permissão de notificação negada.", "#f0a800");
+            updateNotifButton();
+          }
+        } catch (e) {
+          showToast("❌ Erro ao solicitar notificações." + e.message, "#f85149");
+        }
+      }
+
+      function showBrowserNotification(title, body) {
+        if (!notifEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
+        try {
+          new Notification(title, {
+            body: body,
+            icon: "favicon.png",
+            tag: "mestre-cmd-" + Date.now(),
+            requireInteraction: false,
+            silent: false,
+          });
+        } catch (e) {
+          /* ignora falhas de notificação */
+        }
+      }
+
+      function updateNotifButton() {
+        const btn = document.getElementById("notifBtn");
+        if (!btn) return;
+        if (notifEnabled && "Notification" in window && Notification.permission === "granted") {
+          btn.textContent = "🔔 Ativo";
+          btn.style.color = "var(--accent2)";
+        } else {
+          btn.textContent = "🔔 Desativado";
+          btn.style.color = "#8b949e";
+        }
+      }
+
+      // ===== CONSOLE NOTIFICATION TOAST (interno) =====
+      let _notifTimeout = null;
+      function showConsoleNotification(title, body) {
+        const toast = document.getElementById("consoleNotif");
+        document.getElementById("notifTitle").textContent = title;
+        document.getElementById("notifBody").textContent = body;
+        toast.classList.add("show");
+        clearTimeout(_notifTimeout);
+        _notifTimeout = setTimeout(hideConsoleNotification, 6000);
+      }
+      function hideConsoleNotification() {
+        document.getElementById("consoleNotif").classList.remove("show");
+      }
+
+      // ===== AUTO-SCROLL INTELIGENTE =====
+      function setupAutoScrollListener() {
+        const container = document.getElementById("consoleLogContainer");
+        if (!container) return;
+        container.addEventListener("scroll", () => {
+          const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+          userScrolledUp = !nearBottom;
+        });
+      }
+      document.addEventListener("DOMContentLoaded", setupAutoScrollListener);
+
+      function smartAutoScroll(entryEl) {
+        if (!autoScrollEnabled || userScrolledUp) return;
+        const container = document.getElementById("consoleLogContainer");
+        if (!container) return;
+        setTimeout(() => {
+          entryEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 50);
+      }
+
+      function toggleAutoScroll() {
+        autoScrollEnabled = !autoScrollEnabled;
+        localStorage.setItem(AUTOSCROLL_KEY, String(autoScrollEnabled));
+        updateAutoScrollButton();
+        showToast(autoScrollEnabled ? "⬇️ Auto-scroll ativado" : "🛑 Auto-scroll pausado", "#00d4ff");
+      }
+
+      function updateAutoScrollButton() {
+        const btn = document.getElementById("autoScrollBtn");
+        if (!btn) return;
+        btn.textContent = autoScrollEnabled ? "⬇️ Auto-scroll" : "🛑 Auto-scroll";
+        btn.style.opacity = autoScrollEnabled ? "1" : "0.5";
+      }
+
+      // ===== POLLING DE JOB =====
+      async function pollJobStatus(jobId) {
+        const MAX_POLLS = 120; // 2 minutos (a cada 1s)
+        let polls = 0;
+
+        while (polls < MAX_POLLS) {
+          if (!activeJobs[jobId]) return; // Job cancelado/removido
+          try {
+            const res = await fetch(`${API}/run-status?id=${jobId}`, { signal: AbortSignal.timeout(5000) });
+            const data = await res.json();
+            const state = data.state;
+
+            if (state === "completed" || state === "failed" || state === "timed_out") {
+              finalizeConsoleEntry(jobId, data.success, data.output, data.exitCode);
+              delete activeJobs[jobId];
+              updateJobCounter();
+              stopGlobalTimer();
+              showToast(data.success ? "✅ Comando concluído!" : "❌ Erro na execução", data.success ? "var(--accent2)" : "#f85149");
+              return;
+            }
+
+            // Ainda rodando — atualiza output se houver
+            const outEl = document.getElementById(`out-${jobId}`);
+            if (outEl && data.output) {
+              outEl.textContent = data.output;
+              // Aplica filtro atual em tempo real
+              const entry = outEl.closest(".console-entry");
+              if (entry && currentFilter !== "all") {
+                entry.style.display = (currentFilter === "running") ? "" : "none";
+              }
+            }
+          } catch (err) {
+            // Ignora erros de poll, tenta novamente
+          }
+          await new Promise(r => setTimeout(r, 1000));
+          polls++;
+        }
+
+        // Timeout no polling
+        finalizeConsoleEntry(jobId, false, "⏱️ Timeout: O comando demorou mais de 2 minutos para responder. Verifique manualmente via Task Manager.", -1);
+        delete activeJobs[jobId];
+        updateJobCounter();
+        stopGlobalTimer();
+        showToast("⏱️ Timeout do comando", "#f0a800");
+      }
+
+      function copyOutputByJob(jobId) {
+        const outEl = document.getElementById(`out-${jobId}`);
+        if (!outEl) return;
+        navigator.clipboard.writeText(outEl.textContent).then(() => showToast("📋 Output copiado!"));
+      }
+
+      function toggleOutputExpand(jobId) {
+        const outEl = document.getElementById(`out-${jobId}`);
+        if (!outEl) return;
+        outEl.classList.toggle("expanded");
+        const btn = outEl.parentElement.querySelector(".btn-expand");
+        if (btn) btn.textContent = outEl.classList.contains("expanded") ? "🔼 Reduzir" : "🔽 Expandir";
+      }
+
+      function clearConsole() {
+        document.getElementById("consoleLogContainer").innerHTML = '\n          <div class="console-empty" id="consoleEmpty">Nenhum comando executado ainda. Selecione um comando e clique em "Executar".</div>\n        ';
+        consoleHistory = [];
+        Object.keys(activeJobs).forEach(id => {
+          if (activeJobs[id].timerInterval) clearInterval(activeJobs[id].timerInterval);
+        });
+        activeJobs = {};
+        updateJobCounter();
+        stopGlobalTimer();
+        document.getElementById("outputPanel").style.display = "none";
+        try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      }
+
+      function toggleConsoleExpand() {
+        const panel = document.getElementById("outputPanel");
+        panel.classList.toggle("expanded");
+        consoleExpanded = panel.classList.contains("expanded");
+        const btn = panel.querySelector('button[onclick="toggleConsoleExpand()"]');
+        if (btn) btn.textContent = consoleExpanded ? "🔼 Reduzir" : "🔽 Expandir";
+      }
+
+      function exportConsoleToTxt() {
+        const entries = document.querySelectorAll(".console-entry");
+        if (entries.length === 0) {
+          showToast("ℹ️ Console vazio — nada para exportar", "#00d4ff");
+          return;
+        }
+        let text = "=== LOG DO MESTRE DO PC V7 ===\n";
+        text += `Exportado em: ${new Date().toLocaleString("pt-BR")}\n\n`;
+        [...entries].reverse().forEach((el, i) => {
+          const time = el.querySelector(".entry-time")?.textContent || "";
+          const label = el.querySelector(".entry-label")?.textContent || "";
+          const cmd = el.querySelector(".entry-cmd")?.textContent || "";
+          const out = el.querySelector(".entry-output")?.textContent || "";
+          text += `--- Comando #${i + 1} [${time}] [${label}] ---\n`;
+          text += `CMD:\n${cmd}\n\n`;
+          text += `OUTPUT:\n${out}\n\n`;
+        });
+        text += "=== FIM DO LOG ===\n";
+
+        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `mestre-log-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast("💾 Log exportado!", "var(--accent2)");
+      }
+
       async function runCmd(uid) {
+
         const code = document.getElementById(uid).innerText.trim();
 
         // Verificar se precisa de parâmetro
@@ -1345,11 +2230,12 @@
           showToast("⚠️ Servidor offline. Comando copiado — cole no PowerShell Admin.", "#f0a800");
           return;
         }
-        const panel = document.getElementById("outputPanel");
-        const content = document.getElementById("outputContent");
-        panel.style.display = "block";
-        content.textContent = "⏳ Executando...";
-        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+        // Cria entrada no console
+        const entryEl = createConsoleEntry(code, "");
+        const outEl = entryEl.querySelector(`pre[id^="out-"]`);
+        const labelEl = entryEl.querySelector(`span[id^="lbl-"]`);
+
         showToast("🚀 Enviando para o PowerShell Admin...", "#00d4ff");
         try {
           const res = await fetch(API + "/run", {
@@ -1359,15 +2245,41 @@
             signal: AbortSignal.timeout(30000),
           });
           const data = await res.json();
-          content.textContent = data.output || "(sem output)";
-          content.style.color = data.success ? "#e6edf3" : "#f85149";
-          showToast(
-            data.success ? "✅ Comando executado!" : "❌ Erro na execução",
-            data.success ? "var(--accent2)" : "#f85149",
-          );
+
+          if (data.accepted && data.jobId) {
+            // Modo assíncrono — inicia polling
+            const jobId = data.jobId;
+            entryEl.dataset.jobId = jobId;
+            if (outEl) outEl.id = `out-${jobId}`;
+            if (labelEl) labelEl.id = `lbl-${jobId}`;
+            const actsEl = entryEl.querySelector(`div[id^="acts-"]`);
+            if (actsEl) {
+              actsEl.id = `acts-${jobId}`;
+              const btns = actsEl.querySelectorAll("button");
+              if (btns[0]) btns[0].setAttribute("onclick", `copyOutputByJob('${jobId}')`);
+              if (btns[1]) btns[1].setAttribute("onclick", `toggleOutputExpand('${jobId}')`);
+            }
+
+            activeJobs[jobId] = { entryEl, cmd: code };
+            updateJobCounter();
+            startGlobalTimer();
+            if (outEl) outEl.textContent = "⏳ Comando aceito. Executando em segundo plano...";
+            pollJobStatus(jobId);
+          } else {
+            // Modo síncrono (fallback — resposta imediata)
+            const jobId = "sync-" + Date.now();
+            entryEl.dataset.jobId = jobId;
+            if (outEl) outEl.id = `out-${jobId}`;
+            if (labelEl) labelEl.id = `lbl-${jobId}`;
+            finalizeConsoleEntry(jobId, data.success, data.output, data.exitCode);
+            showToast(data.success ? "✅ Comando executado!" : "❌ Erro na execução", data.success ? "var(--accent2)" : "#f85149");
+          }
         } catch (err) {
-          content.textContent = "Erro de conexão: " + err.message + "\n\nVerifique se o Launcher está rodando.";
-          content.style.color = "#f85149";
+          const jobId = "sync-" + Date.now();
+          entryEl.dataset.jobId = jobId;
+          if (outEl) outEl.id = `out-${jobId}`;
+          if (labelEl) labelEl.id = `lbl-${jobId}`;
+          finalizeConsoleEntry(jobId, false, "Erro de conexão: " + err.message + "\n\nVerifique se o Launcher está rodando.", 1);
           showToast("❌ Falha na conexão", "#f85149");
           serverOnline = false;
         }
@@ -1554,35 +2466,17 @@ COMANDOS QUE VOCÊ CONHECE:
       async function runIACmd(btn) {
         const pre = btn.previousElementSibling;
         if (!pre) return;
-        const cmd = pre.textContent;
+        const cmd = pre.textContent.trim();
         if (!serverOnline) {
           showToast("❌ Servidor offline! Execute o Launcher primeiro.", "#f85149");
           return;
         }
-        btn.textContent = "⏳ Executando...";
-        btn.disabled = true;
-        try {
-          const res = await fetch(API + "/run", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ cmd })
-          });
-          const data = await res.json();
-          if (data.success) {
-            showOutput(data.output);
-            btn.textContent = "✅ Executado!";
-            btn.style.background = "var(--success)";
-          } else {
-            btn.textContent = "❌ Falhou";
-          }
-        } catch {
-          btn.textContent = "❌ Erro";
-        }
-        setTimeout(() => {
-          btn.textContent = "▶ Executar";
-          btn.disabled = false;
-          btn.style.background = "";
-        }, 3000);
+        // Copia comando para clipboard
+        try { await navigator.clipboard.writeText(cmd); } catch {}
+        // Fecha modal IA para focar no console
+        closeIA();
+        // Chama o executeCmd que agora usa o Console Avançado
+        await executeCmd(cmd);
       }
 
       function scrollIAToBottom() {
