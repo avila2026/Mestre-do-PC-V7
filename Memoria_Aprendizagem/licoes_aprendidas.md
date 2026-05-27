@@ -50,4 +50,22 @@
 
 ---
 
+## 6. LocalStorage é finito — sempre limite e expire dados
+
+**Erro:** Em versões anteriores do console, não havia limite de entradas no `localStorage`.
+**Risco:** O `localStorage` tem cota de ~5MB. Sem limite, o histórico de comandos poderia encher e quebrar.
+**Solução:** Implementar `MAX_HISTORY = 100` e `HISTORY_RETENTION_MS = 24h` no console avançado.
+**Regra:** Qualquer feature que use `localStorage` deve ter: (1) limite máximo, (2) TTL/expire, (3) fallback se storage falhar.
+
+---
+
+## 7. Parsing de output textual é frágil — use `dataset` para metadados
+
+**Erro:** Tentar re-parsear texto do output para aplicar filtros após finalização.
+**Por que aconteceu:** O output é texto puro do PowerShell; regex pode falhar com locales diferentes.
+**Solução:** Armazenar `dataset.status`, `dataset.exitCode`, `dataset.timestamp` diretamente no DOM da entry.
+**Regra:** Nunca confie em re-parsear texto para estado da UI. Sempre guarde metadados estruturados no elemento HTML.
+
+---
+
 *Adicione novas lições seguindo o formato acima quando encontrar novos problemas.*

@@ -38,13 +38,38 @@
 - [ ] Adicionar um sistema de versionamento automático (ex: `version.json`)
 - [ ] Criar um README geral na raiz do projeto
 
+## 🛡️ Console Avançado V2 — ✅ CONCLUÍDA (2026-05-27)
+
+- [x] Histórico persistente no `localStorage` (100 entradas, 24h TTL)
+- [x] Filtros por status: Todos | Executando | Sucesso | Erro
+- [x] Auto-scroll inteligente com detecção de scroll manual
+- [x] Timer global de execução + contador de jobs paralelos
+- [x] Painel expandível/closable com toolbar completa
+- [x] Exportar log para `.txt` com todos os comandos e outputs
+- [x] Notificações nativas do navegador (Browser Notification API)
+- [x] **Mini métricas visuais (gauges + progress bars)** no output
+  - [x] Parser de métricas: RAM, Disco, Uptime, CPU, GPU VRAM, Temperatura, Boot Time
+  - [x] Cores condicionais: verde/amar/vermelho por thresholds
+  - [x] Injeção automática após finalização do comando
+
+## 🧪 Testes Pendentes
+
+- [ ] Testar métricas com múltiplos discos (D:, E:, etc.)
+- [ ] Testar notificações nativas no Windows 11
+- [ ] Testar persistência de histórico após fechar/reabrir navegador
+
 ## 🔮 Futuro (Ideias para V8)
 
 - [ ] Dashboard visual de saúde do PC em tempo real
 - [ ] Sistema de temas (claro/escuro selecionável pelo usuário)
 - [ ] Backup automático de configurações do usuário
 - [ ] Modo "Piloto Automático" — IA executa limpezas sem perguntar
+- [ ] Gráficos históricos de métricas (tendência de RAM/disco ao longo do tempo)
+- [ ] WebSockets no backend (substituir polling por SSE real)
+- [ ] Alertas proativos quando métricas cruzarem thresholds em jobs em andamento
 
 ---
 
-Atualizado em: 19/03/2026
+Atualizado em: 27/05/2026
+
+*Ver detalhes técnicos completos em `sessao_2026-05-27_console-avancado-v2.md`*
