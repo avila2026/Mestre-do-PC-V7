@@ -34,7 +34,7 @@ export const getOllamaModel = (): string => {
 export const getOllamaClient = async (): Promise<OpenAI> => {
   return new OpenAI({
     baseURL: getOllamaBaseUrl(),
-    apiKey: 'ollama', // Dummy key required by the OpenAI SDK
+    apiKey: import.meta.env.VITE_OLLAMA_API_KEY || 'ollama', // Use provided key or dummy key
     dangerouslyAllowBrowser: true
   });
 };
