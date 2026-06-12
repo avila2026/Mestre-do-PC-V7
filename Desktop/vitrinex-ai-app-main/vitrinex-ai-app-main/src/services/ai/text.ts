@@ -29,6 +29,7 @@ export interface GenerateTextOptions {
     userId?: string;
     useOpenAI?: boolean;
     useOllama?: boolean;
+    reasoningEffort?: 'none' | 'low' | 'medium' | 'high';
 }
 
 // Reasoning models (gpt-oss, nemotron, etc.) consume tokens on an internal
@@ -64,6 +65,11 @@ const buildTextRequest = (
         stop: options?.stopSequences,
         seed: options?.seed,
     };
+
+    const isThinkingModel = modelToUse.includes('o1') || modelToUse.includes('o3') || modelToUse.includes('gpt-oss');
+    if (isThinkingModel && options?.reasoningEffort && options.reasoningEffort !== 'none') {
+        req.reasoning_effort = options.reasoningEffort;
+    }
 
     if (options?.responseMimeType === 'application/json' || options?.responseSchema) {
         req.response_format = { type: 'json_object' };
@@ -198,11 +204,12 @@ export const sendMessageToChat = async (
         useKnowledgeBase?: boolean;
         useThinking?: boolean;
         userId?: string;
-        tools?: any[]
+        tools?: any[];
+        reasoningEffort?: 'none' | 'low' | 'medium' | 'high';
     },
     signal?: AbortSignal
 ): Promise<string> => {
-    const isGptModel = options.model?.startsWith('gpt-');
+    const isGptModel = options.model?.startsWith('gpt-') || options.model?.startsWith('o1') || options.model?.startsWith('o3');
     const hasTools = options.tools && options.tools.length > 0;
     const routeToOpenAI = options.model ? isGptModel : true; // Default chat to OpenAI unless Ollama model is explicitly requested
 
@@ -238,6 +245,11 @@ export const sendMessageToChat = async (
             temperature: 1.0,
             stream: true,
         };
+
+        const isThinkingModel = modelToUse.includes('o1') || modelToUse.includes('o3') || modelToUse.includes('gpt-oss');
+        if (isThinkingModel && options?.reasoningEffort && options.reasoningEffort !== 'none') {
+            requestOptions.reasoning_effort = options.reasoningEffort;
+        }
         
         if (options.tools && options.tools.length > 0) {
             requestOptions.tools = options.tools;
@@ -309,7 +321,7 @@ export const searchTrends = async (query: string, language: string = 'en-US', us
     }
 };
 
-export const campaignBuilder = async (campaignPrompt: string, userId: string = 'anonymous'): Promise<{ campaign: Campaign }> => {
+export const campaignBuilder = async (campaignPrompt: string, userId: string = 'anonymous', options?: GenerateTextOptions): Promise<{ campaign: Campaign }> => {
     const planPrompt = `Atue como um CMO (Diretor de Marketing) de classe mundial especialista em Growth Hacking e Copywriting.
     
     OBJETIVO: Criar uma campanha de marketing de ALTO IMPACTO e CONVERSÃO para: "${campaignPrompt}".
@@ -342,7 +354,8 @@ export const campaignBuilder = async (campaignPrompt: string, userId: string = '
     const planJsonStr = await generateText(planPrompt, {
         useOpenAI: true,
         responseMimeType: 'application/json',
-        temperature: 0.7 
+        temperature: 0.7,
+        ...options
     });
 
     let plan;

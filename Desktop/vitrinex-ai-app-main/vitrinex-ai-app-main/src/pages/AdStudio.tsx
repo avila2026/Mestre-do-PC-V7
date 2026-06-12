@@ -14,6 +14,7 @@ import { GEMINI_PRO_MODEL, IMAGEN_ULTRA_MODEL, PLACEHOLDER_IMAGE_BASE64 } from '
 import { useToast } from '../contexts/ToastContext';
 import { uploadFile } from '../services/media/storage';
 import { useAuth } from '../contexts/AuthContext';
+import AiSettingsSelector from '../components/features/AiSettingsSelector';
 import { hostingerApi } from '../services/integrations/hostinger';
 import {
   ChartBarIcon,
@@ -46,6 +47,13 @@ const AdStudio: React.FC = () => {
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
 
+  // AI Config State
+  const [aiConfig, setAiConfig] = useState({
+    provider: 'openai' as 'openai' | 'ollama',
+    model: '',
+    reasoningEffort: 'none' as 'none' | 'low' | 'medium' | 'high'
+  });
+
 
 
   const { addToast } = useToast();
@@ -72,7 +80,10 @@ const AdStudio: React.FC = () => {
       Return the output as a JSON object with 'headline', 'copy', and 'visual_description' keys.`;
 
       const textResponse = await generateText(adPrompt, {
-        model: GEMINI_PRO_MODEL,
+        useOpenAI: aiConfig.provider === 'openai',
+        useOllama: aiConfig.provider === 'ollama',
+        model: aiConfig.model,
+        reasoningEffort: aiConfig.reasoningEffort,
         responseMimeType: 'application/json',
         responseSchema: {
           type: 'OBJECT',
@@ -144,7 +155,7 @@ const AdStudio: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [productDescription, targetAudience, selectedPlatform, userId, user, addToast]);
+  }, [productDescription, targetAudience, selectedPlatform, userId, user, addToast, aiConfig]);
 
   const handleSaveAd = useCallback(async () => {
     if (!generatedAd) {
@@ -189,7 +200,12 @@ Forneça:
 
 Responda em Markdown estruturado.`;
 
-      const response = await generateText(prompt, { model: GEMINI_PRO_MODEL });
+      const response = await generateText(prompt, {
+        useOpenAI: aiConfig.provider === 'openai',
+        useOllama: aiConfig.provider === 'ollama',
+        model: aiConfig.model,
+        reasoningEffort: aiConfig.reasoningEffort
+      });
 
       // Antigravit: Save Memory
       if (user) {
@@ -205,7 +221,7 @@ Responda em Markdown estruturado.`;
     } finally {
       setIsAnalyzing(false);
     }
-  }, [adToAnalyze, addToast]);
+  }, [adToAnalyze, addToast, user, aiConfig]);
 
   const handleRewriteAd = useCallback(async (mode: 'minimalist' | 'engagement' | 'sell' | 'news') => {
     if (!generatedAd) return;
@@ -228,7 +244,10 @@ Texto: ${generatedAd.copy}
 Retorne no formato JSON: { "headline": "...", "copy": "..." }`;
 
       const response = await generateText(prompt, {
-        model: GEMINI_PRO_MODEL,
+        useOpenAI: aiConfig.provider === 'openai',
+        useOllama: aiConfig.provider === 'ollama',
+        model: aiConfig.model,
+        reasoningEffort: aiConfig.reasoningEffort,
         responseMimeType: 'application/json'
       });
 
@@ -247,7 +266,7 @@ Retorne no formato JSON: { "headline": "...", "copy": "..." }`;
     } finally {
       setLoading(false);
     }
-  }, [generatedAd, addToast]);
+  }, [generatedAd, addToast, aiConfig]);
 
 
   return (
@@ -256,6 +275,8 @@ Retorne no formato JSON: { "headline": "...", "copy": "..." }`;
         <RocketLaunchIcon className="w-8 h-8 text-primary" />
         Estúdio de Anúncios
       </h2>
+
+      <AiSettingsSelector pageKey="ads" onConfigChange={setAiConfig} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Lado Esquerdo: Geração */}

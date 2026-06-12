@@ -16,6 +16,7 @@ import { generatePinterestRSS } from '../services/features/pinterestRss';
 import { socialAuthService } from '../services/social/SocialAuthService';
 import { uploadFileToDrive, isDriveConnected } from '../services/integrations/googleDrive';
 import { generateText, generateImage } from '../services/ai';
+import AiSettingsSelector from '../components/features/AiSettingsSelector';
 import { saveLibraryItem } from '../services/core/db';
 import { Post, LibraryItem } from '../types';
 import { GEMINI_FLASH_MODEL, GEMINI_IMAGE_MODEL, PLACEHOLDER_IMAGE_BASE64, GEMINI_PRO_MODEL, IMAGEN_ULTRA_MODEL, SYSTEM_INSTRUCTION_ENHANCE_PROMPT } from '../constants';
@@ -55,6 +56,13 @@ const ContentGenerator: React.FC = () => {
   const [loadingImages, setLoadingImages] = useState<string[]>([]); // Array of IDs currently generating images
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const { startTutorial, completedModules } = useTutorial();
+
+  // AI Config State
+  const [aiConfig, setAiConfig] = useState({
+    provider: 'openai' as 'openai' | 'ollama',
+    model: '',
+    reasoningEffort: 'none' as 'none' | 'low' | 'medium' | 'high'
+  });
 
 
   const [targetAudience, setTargetAudience] = useState<string>('general');
@@ -177,7 +185,13 @@ const ContentGenerator: React.FC = () => {
         }`;
 
         try {
-          const strategyResponse = await generateText(strategyPrompt, { model: GEMINI_FLASH_MODEL, responseMimeType: 'application/json' });
+          const strategyResponse = await generateText(strategyPrompt, {
+            useOpenAI: aiConfig.provider === 'openai',
+            useOllama: aiConfig.provider === 'ollama',
+            model: aiConfig.model,
+            reasoningEffort: aiConfig.reasoningEffort,
+            responseMimeType: 'application/json'
+          });
           strategyContext = `\n\nDIRETRIZES ESTRATÉGICAS DEFINIDAS (SIGA ESTRITAMENTE):\n${strategyResponse}`;
           addToast({ type: 'success', title: 'Estratégia Definida', message: 'Criando posts com base no plano estratégico...' });
         } catch (e) {
@@ -203,7 +217,13 @@ const ContentGenerator: React.FC = () => {
       5. NÃO adicione texto antes ou depois do JSON.
       `;
 
-      const textResponse = await generateText(systemPrompt, { model: GEMINI_FLASH_MODEL, responseMimeType: 'application/json' });
+      const textResponse = await generateText(systemPrompt, {
+        useOpenAI: aiConfig.provider === 'openai',
+        useOllama: aiConfig.provider === 'ollama',
+        model: aiConfig.model,
+        reasoningEffort: aiConfig.reasoningEffort,
+        responseMimeType: 'application/json'
+      });
 
       let postsData: any[] = [];
       try {
@@ -245,7 +265,7 @@ const ContentGenerator: React.FC = () => {
       setIsGenerating(false);
       setLoadingText(false);
     }
-  }, [prompt, userId, addToast, targetAudience]);
+  }, [prompt, userId, addToast, targetAudience, aiConfig]);
 
   const handleGenerateOnePost = useCallback(() => generateContent(false), [generateContent]);
   const handleGenerateSeries = useCallback(() => generateContent(true), [generateContent]);
@@ -265,7 +285,12 @@ const ContentGenerator: React.FC = () => {
       Input Concept: "${post.image_prompt}"
       Context (Background Story): "${post.content_text.substring(0, 150)}..."`;
 
-      const refined = await generateText(refinePrompt, { model: GEMINI_FLASH_MODEL });
+      const refined = await generateText(refinePrompt, {
+        useOpenAI: aiConfig.provider === 'openai',
+        useOllama: aiConfig.provider === 'ollama',
+        model: aiConfig.model,
+        reasoningEffort: aiConfig.reasoningEffort
+      });
 
       // Update local state
       const updatedPosts = [...generatedPosts];
@@ -381,7 +406,13 @@ const ContentGenerator: React.FC = () => {
       Gere 4 personas (compradores ideais) no tema "${avatarTheme}".
       Retorne em JSON um array de objetos com: id, name, age, occupation, interests, painPoints, buyingBehavior.`;
 
-      const response = await generateText(avatarPrompt, { model: GEMINI_PRO_MODEL, responseMimeType: 'application/json' });
+      const response = await generateText(avatarPrompt, {
+        useOpenAI: aiConfig.provider === 'openai',
+        useOllama: aiConfig.provider === 'ollama',
+        model: aiConfig.model,
+        reasoningEffort: aiConfig.reasoningEffort,
+        responseMimeType: 'application/json'
+      });
       const cleanResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
       const generatedAvatars: Avatar[] = JSON.parse(cleanResponse);
 
@@ -409,16 +440,21 @@ const ContentGenerator: React.FC = () => {
     } finally {
       setLoadingAvatars(false);
     }
-  }, [prompt, avatarTheme, userId, addToast]);
+  }, [prompt, avatarTheme, userId, addToast, aiConfig]);
 
   const analyzeProfile = useCallback(async () => {
     if (!profileAnalysisText.trim()) return;
     setLoadingProfileAnalysis(true);
     try {
-      const res = await generateText(`Analise o perfil deste texto: "${profileAnalysisText}". Retorne demografia, interesses, dores.`, { model: GEMINI_PRO_MODEL });
+      const res = await generateText(`Analise o perfil deste texto: "${profileAnalysisText}". Retorne demografia, interesses, dores.`, {
+        useOpenAI: aiConfig.provider === 'openai',
+        useOllama: aiConfig.provider === 'ollama',
+        model: aiConfig.model,
+        reasoningEffort: aiConfig.reasoningEffort
+      });
       setProfileAnalysisResult(res);
     } catch (e) { addToast({ type: 'error', message: translateError(e) }); } finally { setLoadingProfileAnalysis(false); }
-  }, [profileAnalysisText, addToast]);
+  }, [profileAnalysisText, addToast, aiConfig]);
 
   const handleDownloadAvatarsTxt = useCallback(() => {
     if (avatars.length === 0) return;
@@ -700,6 +736,7 @@ const ContentGenerator: React.FC = () => {
           </div>
         ) : (
           <>
+            <AiSettingsSelector pageKey="content" onConfigChange={setAiConfig} />
             <LiquidGlassCard className="p-4 md:p-6 mb-6 md:mb-8" blurIntensity="xl" glowIntensity="sm">
 
               <h3 className="text-xl font-semibold text-gray-100 mb-5">Input Criativo</h3>

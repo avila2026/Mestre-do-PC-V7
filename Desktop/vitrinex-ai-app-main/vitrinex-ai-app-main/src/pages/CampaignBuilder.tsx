@@ -5,9 +5,9 @@ import Textarea from '../components/ui/Textarea';
 import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { campaignBuilder, generateText } from '../services/ai';
-import { GEMINI_FLASH_MODEL } from '../constants';
 import { saveCampaign } from '../services/core/db';
 import { Campaign } from '../types';
+import AiSettingsSelector from '../components/features/AiSettingsSelector';
 import { useNavigate } from '../hooks/useNavigate';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -38,6 +38,13 @@ const CampaignBuilder: React.FC = () => {
   const [generatedCampaign, setGeneratedCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // AI Config State
+  const [aiConfig, setAiConfig] = useState({
+    provider: 'openai' as 'openai' | 'ollama',
+    model: '',
+    reasoningEffort: 'none' as 'none' | 'low' | 'medium' | 'high'
+  });
 
   // Tips State
   const [tipsLoading, setTipsLoading] = useState(false);
@@ -122,7 +129,12 @@ CTA Sugerido: ${data.cta || 'Saiba Mais'}`;
       // The request implies "descreva dicas... de como fazer a campanha".
       // Let's trigger both or just campaign first. Let's stick to campaign first, then tips button.
 
-      const { campaign } = await campaignBuilder(campaignPrompt, userId);
+      const { campaign } = await campaignBuilder(campaignPrompt, userId, {
+        useOpenAI: aiConfig.provider === 'openai',
+        useOllama: aiConfig.provider === 'ollama',
+        model: aiConfig.model,
+        reasoningEffort: aiConfig.reasoningEffort
+      });
 
       // Save to Database
       await saveCampaign(campaign);
@@ -137,7 +149,7 @@ CTA Sugerido: ${data.cta || 'Saiba Mais'}`;
     } finally {
       setLoading(false);
     }
-  }, [campaignPrompt, addToast, userId]);
+  }, [campaignPrompt, addToast, userId, aiConfig]);
 
   const handleGenerateTips = useCallback(async () => {
     if (!campaignPrompt.trim()) {
@@ -162,7 +174,10 @@ CTA Sugerido: ${data.cta || 'Saiba Mais'}`;
 
     try {
       const response = await generateText(prompt, {
-        model: GEMINI_FLASH_MODEL,
+        useOpenAI: aiConfig.provider === 'openai',
+        useOllama: aiConfig.provider === 'ollama',
+        model: aiConfig.model,
+        reasoningEffort: aiConfig.reasoningEffort,
         responseMimeType: 'application/json'
       });
 
@@ -176,7 +191,7 @@ CTA Sugerido: ${data.cta || 'Saiba Mais'}`;
     } finally {
       setTipsLoading(false);
     }
-  }, [campaignPrompt, addToast]);
+  }, [campaignPrompt, addToast, aiConfig]);
 
 
   const handleDownloadMaterials = useCallback(() => {
@@ -207,6 +222,8 @@ CTA Sugerido: ${data.cta || 'Saiba Mais'}`;
   return (
     <div className="container mx-auto py-8 lg:py-10 pb-24 md:pb-10">
       <h2 className="text-3xl font-bold text-white mb-8">Construtor de Campanhas</h2>
+
+      <AiSettingsSelector pageKey="campaign" onConfigChange={setAiConfig} />
 
       {error && (
         <div className="bg-red-900 border border-red-600 text-red-300 px-4 py-3 rounded relative mb-8" role="alert">

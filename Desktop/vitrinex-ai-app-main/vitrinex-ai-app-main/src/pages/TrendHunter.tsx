@@ -12,6 +12,7 @@ import { saveLibraryItem } from '../services/core/db';
 import { LibraryItem } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
+import AiSettingsSelector from '../components/features/AiSettingsSelector';
 import { useTutorial, TutorialStep } from '../contexts/TutorialContext';
 import Skeleton from '../components/ui/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -80,6 +81,13 @@ const TrendHunter = () => {
   const [userProfile, setUserProfile] = useState<BusinessProfile>(DEFAULT_BUSINESS_PROFILE);
   const [dailyTrends, setDailyTrends] = useState<DailyTrend[]>([]);
   const [serpData, setSerpData] = useState<GoogleTrendsResult | null>(null);
+
+  // AI Config State
+  const [aiConfig, setAiConfig] = useState({
+    provider: 'ollama' as 'openai' | 'ollama',
+    model: '',
+    reasoningEffort: 'none' as 'none' | 'low' | 'medium' | 'high'
+  });
 
   const { navigateTo } = useNavigate();
   const { addToast } = useToast();
@@ -224,7 +232,10 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
 
     try {
       const response = await generateText(prompt, {
-        model: GEMINI_FLASH_MODEL,
+        useOpenAI: aiConfig.provider === 'openai',
+        useOllama: aiConfig.provider === 'ollama',
+        model: aiConfig.model,
+        reasoningEffort: aiConfig.reasoningEffort
       });
 
       // PROTOCOLO ANTIGRAVIT
@@ -295,7 +306,7 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
     } finally {
       setLoading(false);
     }
-  }, [query, selectedLocation, objective, userProfile, userId, addToast]);
+  }, [query, selectedLocation, objective, userProfile, userId, addToast, aiConfig]);
 
   const handleLocalOrganizationSearch = useCallback(() => {
     setQuery('Organização');
@@ -400,7 +411,12 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
       `;
 
     try {
-      const htmlResponse = await generateText(landingPagePrompt, { model: GEMINI_FLASH_MODEL });
+      const htmlResponse = await generateText(landingPagePrompt, {
+        useOpenAI: aiConfig.provider === 'openai',
+        useOllama: aiConfig.provider === 'ollama',
+        model: aiConfig.model,
+        reasoningEffort: aiConfig.reasoningEffort
+      });
 
       const match = htmlResponse.match(/```html([\s\S]*?)```/) || htmlResponse.match(/```([\s\S]*?)```/);
       const htmlCode = match ? match[1] : htmlResponse;
@@ -435,7 +451,7 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
     } finally {
       setGeneratingHtml(false);
     }
-  }, [result, query, userProfile, userId, addToast]);
+  }, [result, query, userProfile, userId, addToast, aiConfig]);
 
   const handleSaveToLibrary = useCallback(async () => {
     if (!result) return;
@@ -492,6 +508,8 @@ ${result.resumo}
             Descubra oportunidades inexploradas de mercado antes dos seus concorrentes com inteligência artificial.
           </p>
         </header>
+
+        <AiSettingsSelector pageKey="trends" onConfigChange={setAiConfig} />
 
         <HowToUse
           title="Como Pesquisar Tendências"

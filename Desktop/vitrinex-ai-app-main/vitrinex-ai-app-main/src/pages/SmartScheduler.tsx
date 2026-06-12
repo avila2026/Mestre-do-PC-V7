@@ -16,6 +16,7 @@ import Input from '../components/ui/Input';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { generateText } from '../services/ai/text';
+import AiSettingsSelector from '../components/features/AiSettingsSelector';
 import { getScheduleEntries, saveScheduleEntry, deleteScheduleEntry } from '../services/core/db';
 import { useNavigate } from '../hooks/useNavigate';
 import { ScheduleEntry as DbScheduleEntry } from '../types';
@@ -77,6 +78,13 @@ const SmartScheduler: React.FC = () => {
 
     // Library Modal State
     const [isLibraryModalOpen, setIsLibraryModalOpen] = useState(false);
+
+    // AI Config State
+    const [aiConfig, setAiConfig] = useState({
+        provider: 'openai' as 'openai' | 'ollama',
+        model: '',
+        reasoningEffort: 'none' as 'none' | 'low' | 'medium' | 'high'
+    });
 
     const { addToast } = useToast();
     const { user } = useAuth();
@@ -158,7 +166,12 @@ const SmartScheduler: React.FC = () => {
         setIsGeneratingAI(true);
         try {
             const prompt = `Melhor horário para postar ${newTitle} no ${newPlatform}. Responda YYYY-MM-DD HH:MM`;
-            const suggestion = await generateText(prompt);
+            const suggestion = await generateText(prompt, {
+                useOpenAI: aiConfig.provider === 'openai',
+                useOllama: aiConfig.provider === 'ollama',
+                model: aiConfig.model,
+                reasoningEffort: aiConfig.reasoningEffort
+            });
             const match = suggestion.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})/);
             if (match) {
                 setNewDate(match[1]);
@@ -192,7 +205,12 @@ const SmartScheduler: React.FC = () => {
                 }
             }
 
-            const text = await generateText(prompt);
+            const text = await generateText(prompt, {
+                useOpenAI: aiConfig.provider === 'openai',
+                useOllama: aiConfig.provider === 'ollama',
+                model: aiConfig.model,
+                reasoningEffort: aiConfig.reasoningEffort
+            });
             setNewContent(text);
         } catch (e) {
             addToast({ type: 'error', message: 'Erro ao gerar' });
@@ -285,6 +303,8 @@ const SmartScheduler: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            <AiSettingsSelector pageKey="scheduler" onConfigChange={setAiConfig} />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Content */}

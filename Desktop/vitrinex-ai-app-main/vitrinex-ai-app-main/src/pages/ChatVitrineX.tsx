@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { sendMessageToChat } from '../services/ai';
 import { ChatMessage } from '../types';
+import AiSettingsSelector from '../components/features/AiSettingsSelector';
 
 // Types
 interface Message {
@@ -45,6 +46,13 @@ const ChatVitrineX: React.FC = () => {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
+
+    // AI Config State
+    const [aiConfig, setAiConfig] = useState({
+        provider: 'openai' as 'openai' | 'ollama',
+        model: '',
+        reasoningEffort: 'none' as 'none' | 'low' | 'medium' | 'high'
+    });
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -120,7 +128,12 @@ const ChatVitrineX: React.FC = () => {
                         return updated;
                     });
                 },
-                { systemInstruction: VITRINEX_SYSTEM_INSTRUCTION }
+                {
+                    systemInstruction: VITRINEX_SYSTEM_INSTRUCTION,
+                    model: aiConfig.model,
+                    useThinking: aiConfig.reasoningEffort !== 'none',
+                    reasoningEffort: aiConfig.reasoningEffort
+                }
             );
 
             if (!botResponse) {
@@ -146,7 +159,11 @@ const ChatVitrineX: React.FC = () => {
     // --- Render ---
 
     return (
-        <div className="flex flex-col h-[calc(100dvh-18rem)] min-h-[550px] w-full max-w-7xl mx-auto bg-[var(--background)] rounded-3xl shadow-2xl overflow-hidden border border-[var(--border-default)] relative">
+        <>
+            <div className="max-w-7xl mx-auto w-full mb-4">
+                <AiSettingsSelector pageKey="chat" onConfigChange={setAiConfig} />
+            </div>
+            <div className="flex flex-col h-[calc(100dvh-18rem)] min-h-[550px] w-full max-w-7xl mx-auto bg-[var(--background)] rounded-3xl shadow-2xl overflow-hidden border border-[var(--border-default)] relative">
 
             {/* Ambient Background Gradient (Removed for Performance) */}
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 pointer-events-none" />
@@ -314,6 +331,7 @@ const ChatVitrineX: React.FC = () => {
                 </div>
             </div>
         </div>
+    </>
     );
 };
 
