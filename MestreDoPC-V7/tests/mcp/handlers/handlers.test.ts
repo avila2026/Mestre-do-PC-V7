@@ -2,14 +2,14 @@
  * Unit Tests for MCP Handlers
  */
 
-jest.mock('../../src/mcp/tools/registry', () => ({
+jest.mock('../../../src/mcp/tools/registry', () => ({
   getTool: jest.fn(),
   getAllTools: jest.fn(),
 }));
 
-import { getTool, getAllTools } from '../../src/mcp/tools/registry';
-import { handleListTools } from '../../src/mcp/handlers/listTools';
-import { handleCallTool } from '../../src/mcp/handlers/callTool';
+import { getTool, getAllTools } from '../../../src/mcp/tools/registry';
+import { handleListTools } from '../../../src/mcp/handlers/listTools';
+import { handleCallTool } from '../../../src/mcp/handlers/callTool';
 
 const mockGetTool = getTool as jest.MockedFunction<typeof getTool>;
 const mockGetAllTools = getAllTools as jest.MockedFunction<typeof getAllTools>;

@@ -23,17 +23,17 @@ export abstract class BaseTool implements ITool {
   async execute(params: Record<string, string>): Promise<ToolResult> {
     const { validation, security } = validateToolCall(this.name, params);
 
+    if (!security.safe) {
+      throw new SecurityError(
+        `Security violation for ${this.name}`,
+        security.violations
+      );
+    }
+
     if (!validation.isValid) {
       throw new ValidationError(
         `Invalid parameters for ${this.name}`,
         validation.errors
-      );
-    }
-
-    if (!security.safe) {
-      throw new SecurityError(
-        `Security check failed for ${this.name}`,
-        security.violations
       );
     }
 
