@@ -48,7 +48,10 @@ describe('Launcher Infrastructure - Integration', () => {
     const result = await pollUntil(
       async () => {
         const status = await getStatus({ jobId: run.jobId });
-        return { done: status.status !== 'running', result: status };
+        return {
+          done: status.status === 'completed' || status.status === 'failed' || status.status === 'error',
+          result: status,
+        };
       },
       { intervalMs: 10, timeoutMs: 5000 }
     );
@@ -70,7 +73,14 @@ describe('Launcher Infrastructure - Integration', () => {
         async () => {
           const status = await getStatus({ jobId: run.jobId });
           return {
+<<<<<<< HEAD
             done: status.status === 'completed' || status.status === 'failed',
+=======
+            done:
+              status.status === 'completed' ||
+              status.status === 'failed' ||
+              status.status === 'error',
+>>>>>>> 9b913e0bd2f64f904a1a8d46c996c2d34a7911f7
             result: status,
           };
         },
