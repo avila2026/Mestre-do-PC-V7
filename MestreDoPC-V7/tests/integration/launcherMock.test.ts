@@ -69,7 +69,10 @@ describe('Launcher Infrastructure - Integration', () => {
       pollUntil(
         async () => {
           const status = await getStatus({ jobId: run.jobId });
-          return { done: status.status !== 'running', result: status };
+          return {
+            done: status.status === 'completed' || status.status === 'failed',
+            result: status,
+          };
         },
         { intervalMs: 10, timeoutMs: 50 }
       )

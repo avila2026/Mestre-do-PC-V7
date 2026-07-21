@@ -2,7 +2,7 @@
  * Unit Tests for Poller Utility
  */
 
-import { pollUntil } from '../../src/infra/launcher/poller';
+import { pollUntil } from '../../../src/infra/launcher/poller';
 
 describe('pollUntil', () => {
   it('should return immediately when done', async () => {

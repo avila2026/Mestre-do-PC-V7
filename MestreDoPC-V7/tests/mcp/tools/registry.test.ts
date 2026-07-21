@@ -2,7 +2,7 @@
  * Unit Tests for Tool Registry
  */
 
-import { getTool, getAllTools, getToolNames } from '../../src/mcp/tools/registry';
+import { getTool, getAllTools, getToolNames } from '../../../src/mcp/tools/registry';
 
 describe('Tool Registry', () => {
   it('should return all 6 tools', () => {
