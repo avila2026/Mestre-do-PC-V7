@@ -7,7 +7,7 @@
 import { getTool } from '../tools/registry';
 import { logger } from '../../infra/logger';
 
-import { CallToolRequest } from '@modelcontextprotocol/sdk/types';
+import { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
 
 export async function handleCallTool(request: CallToolRequest): Promise<{ content: { type: string; text: string }[]; isError: boolean }> {
   const { name, arguments: args } = request.params;
