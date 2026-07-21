@@ -5,7 +5,7 @@
 const mockFetch = jest.fn();
 (global as any).fetch = mockFetch;
 
-import { postCommand, getStatus } from '../../src/infra/launcher/client';
+import { postCommand, getStatus } from '../../../src/infra/launcher/client';
 
 describe('launcher client', () => {
   beforeEach(() => {

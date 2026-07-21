@@ -2,7 +2,7 @@
  * Unit Tests for Retry Utility
  */
 
-import { withRetry } from '../../src/infra/launcher/retry';
+import { withRetry } from '../../../src/infra/launcher/retry';
 
 describe('withRetry', () => {
   it('should return result on first success', async () => {
