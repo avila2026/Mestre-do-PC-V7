@@ -15,6 +15,10 @@ const execFileAsync = promisify(execFile);
 
 type ScriptBuilder = (params: Record<string, string>) => string;
 
+function parseJsonUnknown(jsonText: string): unknown {
+  return JSON.parse(jsonText) as unknown;
+}
+
 const TOOL_SCRIPTS: Record<string, ScriptBuilder> = {
   limpeza_rapida_completa: (params) => {
     const dryRun = params.dryRun === 'true' ? '$true' : '$false';
@@ -149,9 +153,9 @@ export async function executeLauncherCommand(
       }
 
       const output = stdout.trim();
-      let result;
+      let result: unknown;
       try {
-        result = JSON.parse(output);
+        result = parseJsonUnknown(output);
       } catch {
         result = { saida: output, status: 'ok' };
       }
